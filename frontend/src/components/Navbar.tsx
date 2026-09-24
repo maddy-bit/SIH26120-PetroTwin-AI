@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldAlert, Cpu, Sparkles, Play, Database } from 'lucide-react';
+import { Activity, Cpu, Sparkles, Play, Database } from 'lucide-react';
 import { WellId } from '../types/petro';
 
 interface NavbarProps {
@@ -32,44 +32,45 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header style={{
-      background: 'rgba(10, 14, 23, 0.92)',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+      background: '#ffffff',
+      borderBottom: '1px solid #18181b',
       position: 'sticky',
       top: 0,
       zIndex: 50,
-      padding: '0 20px'
+      padding: '0 20px',
+      boxShadow: '0 2px 0px rgba(0,0,0,0.04)'
     }}>
       {/* Top Bar */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: '60px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+        height: '62px',
+        borderBottom: '1px solid #e4e4e7'
       }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{
             width: '36px',
             height: '36px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #00e5ff 0%, #0077b6 100%)',
+            borderRadius: '6px',
+            background: '#18181b',
+            border: '1px solid #18181b',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 16px rgba(0, 229, 255, 0.4)'
+            boxShadow: '2px 2px 0px #2563eb'
           }}>
-            <Cpu size={22} color="#000" />
+            <Cpu size={20} color="#ffffff" />
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '0.02em', color: '#fff' }}>
-                PETRO-TWIN <span style={{ color: '#00e5ff' }}>AI</span>
+              <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#09090b' }}>
+                PETRO-TWIN <span style={{ color: '#2563eb' }}>AI</span>
               </span>
               <span className="tech-badge badge-cyan" style={{ fontSize: '0.65rem' }}>SIH26120</span>
             </div>
-            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+            <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 500 }}>
               Oil India Limited • Baghewala Field Jodhpur Sandstone Digital Twin
             </div>
           </div>
@@ -79,25 +80,35 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="tech-badge badge-sim" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
             <Database size={12} />
-            <span>DATA MODE: SIMULATION (LITERATURE-CALIBRATED)</span>
+            <span>DATA MODE: SIMULATION</span>
           </div>
 
           {/* Live Status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', padding: '5px 12px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#ffffff',
+            padding: '5px 12px',
+            borderRadius: '6px',
+            border: '1px solid #18181b',
+            boxShadow: '1px 1px 0px #18181b'
+          }}>
             <span className="live-indicator"></span>
-            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#00e676', fontWeight: 600 }}>LIVE STREAM</span>
+            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#15803d', fontWeight: 700 }}>LIVE STREAM</span>
           </div>
 
           {/* Well Selector */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>ACTIVE WELL:</span>
+            <span style={{ fontSize: '0.75rem', color: '#52525b', fontWeight: 700 }}>ACTIVE WELL:</span>
             <select
               value={selectedWell}
               onChange={(e) => onSelectWell(e.target.value as WellId)}
               style={{
-                background: '#161e30',
-                color: '#00e5ff',
-                border: '1px solid rgba(0, 229, 255, 0.35)',
+                background: '#ffffff',
+                color: '#09090b',
+                border: '1px solid #18181b',
+                boxShadow: '2px 2px 0px #18181b',
                 padding: '6px 12px',
                 borderRadius: '6px',
                 fontFamily: 'var(--font-mono)',
@@ -116,50 +127,31 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* SIH Jury Demo Action */}
           <button
             onClick={onOpenJuryDemo}
-            style={{
-              background: 'linear-gradient(135deg, #ff6d00 0%, #e65100 100%)',
-              color: '#fff',
-              border: 'none',
-              padding: '7px 14px',
-              borderRadius: '6px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 0 16px rgba(255, 109, 0, 0.35)'
-            }}
+            className="neo-btn neo-btn-primary"
+            style={{ fontSize: '0.78rem' }}
           >
-            <Play size={14} fill="#fff" />
+            <Play size={14} fill="#ffffff" />
             <span>5-MIN JURY DEMO</span>
           </button>
 
           {/* AI Copilot Drawer Trigger */}
           <button
             onClick={onOpenCopilot}
+            className="neo-btn"
             style={{
-              background: 'rgba(0, 229, 255, 0.12)',
-              color: '#00e5ff',
-              border: '1px solid rgba(0, 229, 255, 0.4)',
-              padding: '7px 14px',
-              borderRadius: '6px',
               fontSize: '0.78rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px'
+              color: '#2563eb',
+              borderColor: '#18181b'
             }}
           >
-            <Sparkles size={14} />
+            <Sparkles size={14} color="#2563eb" />
             <span>AI COPILOT</span>
           </button>
         </div>
       </div>
 
       {/* Navigation Sub-Bar */}
-      <nav style={{ display: 'flex', gap: '6px', overflowX: 'auto', padding: '6px 0' }}>
+      <nav style={{ display: 'flex', gap: '6px', overflowX: 'auto', padding: '8px 0' }}>
         {tabs.map((t) => {
           const isActive = activeTab === t.id;
           return (
@@ -167,16 +159,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               key={t.id}
               onClick={() => onSelectTab(t.id)}
               style={{
-                background: isActive ? 'rgba(0, 229, 255, 0.14)' : 'transparent',
-                color: isActive ? '#00e5ff' : '#94a3b8',
-                border: isActive ? '1px solid rgba(0, 229, 255, 0.4)' : '1px solid transparent',
+                background: isActive ? '#18181b' : '#ffffff',
+                color: isActive ? '#ffffff' : '#52525b',
+                border: '1px solid #18181b',
+                boxShadow: isActive ? '2px 2px 0px #2563eb' : '1px 1px 0px #18181b',
                 borderRadius: '6px',
                 padding: '6px 14px',
                 fontSize: '0.82rem',
-                fontWeight: isActive ? 700 : 500,
+                fontWeight: isActive ? 700 : 600,
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease'
+                transition: 'all 0.1s ease'
               }}
             >
               {t.label}

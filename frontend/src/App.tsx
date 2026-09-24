@@ -160,21 +160,21 @@ export function App() {
       {/* Industrial Footer */}
       <footer style={{
         padding: '16px 24px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid var(--border)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         fontSize: '0.74rem',
-        color: '#64748b',
-        background: '#07090e'
+        color: 'var(--text-muted)',
+        background: '#ffffff'
       }}>
-        <div>
-          PETRO-TWIN AI v1.4.0 • Built for Smart India Hackathon 2026 (SIH26120) • Oil India Limited
+        <div style={{ fontWeight: 600 }}>
+          PETRO-TWIN AI v1.4.0 • Built for Smart India Hackathon 2026 (SIH26120) • Oil India Limited (Baghewala Field)
         </div>
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', fontWeight: 600 }}>
           <span>Physics-Informed Hybrid Digital Twin</span>
           <span>Marx-Langenheim / ASTM D341 / API RP 11L</span>
-          <span style={{ color: '#ff9100' }}>SIMULATION MODE ACTIVE</span>
+          <span style={{ color: 'var(--accent-amber)', fontWeight: 800 }}>SIMULATION MODE ACTIVE</span>
         </div>
       </footer>
     </div>

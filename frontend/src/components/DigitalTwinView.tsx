@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, RotateCcw, Clock, Thermometer, Flame, Gauge, AlertTriangle, Layers } from 'lucide-react';
+import { Play, RotateCcw, Clock, Thermometer, Gauge, Layers } from 'lucide-react';
 import { TelemetryFrame } from '../types/petro';
 import { api } from '../services/api';
 
@@ -15,7 +15,7 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
   // Derive dynamic state for the current scrubbed day
   const twinState = api.getTimeMachineState(selectedWell, scrubDay);
 
-  const { thermal_state, fluid_state, srp_operating_state, production_state, wellbore_profile_summary } = twinState;
+  const { thermal_state, fluid_state, srp_operating_state, wellbore_profile_summary } = twinState;
 
   // Thermal plume radius (scales with temperature: 47C is 0%, 200C is 100%)
   const plumeScale = Math.min(1.0, Math.max(0.15, (thermal_state.reservoir_temperature_c - 47.0) / 150.0));
@@ -41,61 +41,51 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px 20px' }}>
       {/* Time Machine Control Bar */}
-      <div className="glass-panel" style={{ padding: '18px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className="glass-panel" style={{ padding: '18px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '6px',
-              background: 'rgba(0, 229, 255, 0.15)',
+              width: '34px',
+              height: '34px',
+              borderRadius: '4px',
+              background: '#eff6ff',
+              border: '1px solid #18181b',
+              boxShadow: '1px 1px 0px #18181b',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              border: '1px solid rgba(0, 229, 255, 0.3)'
+              justifyContent: 'center'
             }}>
-              <Clock size={18} color="#00e5ff" />
+              <Clock size={18} color="#2563eb" />
             </div>
             <div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff' }}>DIGITAL TWIN TIME MACHINE</div>
-              <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#09090b' }}>DIGITAL TWIN TIME MACHINE</div>
+              <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 500 }}>
                 Scrub through the 180-day production lifecycle to simulate continuous reservoir thermal decay and mechanical stress
               </div>
             </div>
           </div>
 
           {/* Quick preset buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             <button
               onClick={() => setIsPlaying(!isPlaying)}
+              className="neo-btn"
               style={{
-                background: isPlaying ? '#ff334b' : '#00e5ff',
-                color: '#000',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '6px 14px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
+                background: isPlaying ? '#dc2626' : '#18181b',
+                color: '#ffffff',
+                border: '1px solid #18181b',
+                boxShadow: isPlaying ? '2px 2px 0px #18181b' : '2px 2px 0px #2563eb',
+                fontSize: '0.78rem'
               }}
             >
-              <Play size={12} fill="#000" />
+              <Play size={12} fill="#ffffff" />
               <span>{isPlaying ? 'PAUSE ANIMATION' : 'PLAY LIFECYCLE'}</span>
             </button>
             <button
               onClick={() => { setScrubDay(5); setIsPlaying(false); }}
-              style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                color: '#cbd5e1',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '6px',
-                padding: '6px 10px',
-                fontSize: '0.75rem',
-                cursor: 'pointer'
-              }}
+              className="neo-btn"
+              style={{ padding: '6px 10px', fontSize: '0.75rem' }}
+              title="Reset to Day 5"
             >
               <RotateCcw size={12} />
             </button>
@@ -105,30 +95,35 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
               { label: 'Day 68 (Current)', day: 68 },
               { label: 'Day 95 (Cooling)', day: 95 },
               { label: 'Day 120 (Cut-Off)', day: 120 }
-            ].map((p) => (
-              <button
-                key={p.day}
-                onClick={() => { setScrubDay(p.day); setIsPlaying(false); }}
-                style={{
-                  background: scrubDay === p.day ? 'rgba(0, 229, 255, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: scrubDay === p.day ? '#00e5ff' : '#94a3b8',
-                  border: scrubDay === p.day ? '1px solid #00e5ff' : '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '4px',
-                  padding: '5px 10px',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+            ].map((p) => {
+              const isSelected = scrubDay === p.day;
+              return (
+                <button
+                  key={p.day}
+                  onClick={() => { setScrubDay(p.day); setIsPlaying(false); }}
+                  style={{
+                    background: isSelected ? '#18181b' : '#ffffff',
+                    color: isSelected ? '#ffffff' : '#3f3f46',
+                    border: '1px solid #18181b',
+                    boxShadow: isSelected ? '2px 2px 0px #2563eb' : '1px 1px 0px #18181b',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                    fontSize: '0.74rem',
+                    fontWeight: isSelected ? 800 : 600,
+                    cursor: 'pointer',
+                    transition: 'all 0.1s ease'
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Time Slider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: '#64748b' }}>Day 0</span>
+          <span style={{ fontSize: '0.8rem', fontFamily: 'var(--font-mono)', color: '#71717a', fontWeight: 600 }}>Day 0</span>
           <input
             type="range"
             min={1}
@@ -137,15 +132,16 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
             onChange={(e) => { setScrubDay(parseInt(e.target.value)); setIsPlaying(false); }}
           />
           <div style={{
-            background: '#161e30',
-            border: '1px solid #00e5ff',
-            padding: '4px 12px',
-            borderRadius: '6px',
+            background: '#18181b',
+            border: '1px solid #18181b',
+            boxShadow: '2px 2px 0px #2563eb',
+            padding: '5px 14px',
+            borderRadius: '4px',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.88rem',
             fontWeight: 800,
-            color: '#00e5ff',
-            minWidth: '85px',
+            color: '#ffffff',
+            minWidth: '95px',
             textAlign: 'center'
           }}>
             DAY {scrubDay}
@@ -158,8 +154,8 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
         {/* Left: Discretized 2D Cyber-Physical Well Schematic */}
         <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Layers size={16} color="#00e5ff" />
+            <span style={{ fontSize: '0.92rem', fontWeight: 800, color: '#09090b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Layers size={16} color="#2563eb" />
               <span>DISCRETIZED WELLBORE & RESERVOIR HYDRAULICS (950m TVD)</span>
             </span>
             <span className={`tech-badge ${isFloating ? 'badge-red' : 'badge-green'}`}>
@@ -167,11 +163,12 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
             </span>
           </div>
 
-          {/* Schematic SVG Canvas */}
+          {/* Schematic Canvas */}
           <div style={{
-            background: 'linear-gradient(180deg, #0d131f 0%, #171d2b 40%, #201712 100%)',
-            borderRadius: '10px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            background: '#f8f9fa',
+            borderRadius: '6px',
+            border: '1px solid #18181b',
+            boxShadow: 'inset 1px 1px 3px rgba(0,0,0,0.05)',
             padding: '20px',
             position: 'relative',
             height: '480px',
@@ -179,14 +176,14 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
             overflow: 'hidden'
           }}>
             {/* Depth Scale */}
-            <div style={{ width: '60px', borderRight: '1px dashed rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#64748b' }}>
+            <div style={{ width: '68px', borderRight: '1px dashed #d4d4d8', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontSize: '0.68rem', fontFamily: 'var(--font-mono)', color: '#52525b', fontWeight: 600 }}>
               <span>0m (Surf)</span>
               <span>200m</span>
               <span>400m</span>
               <span>600m</span>
               <span>800m</span>
-              <span style={{ color: '#00e5ff', fontWeight: 700 }}>900m (Pump)</span>
-              <span style={{ color: '#ff6d00', fontWeight: 700 }}>950m (Res)</span>
+              <span style={{ color: '#2563eb', fontWeight: 700 }}>900m (Pump)</span>
+              <span style={{ color: '#d97706', fontWeight: 700 }}>950m (Res)</span>
             </div>
 
             {/* Well Diagram */}
@@ -195,14 +192,18 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
               <div style={{
                 position: 'absolute',
                 top: 0,
-                width: '160px',
-                height: '50px',
-                borderBottom: '3px solid #64748b',
+                width: '180px',
+                height: '45px',
+                border: '1px solid #18181b',
+                background: '#ffffff',
+                boxShadow: '1px 1px 0px #18181b',
+                borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#cbd5e1',
+                color: '#09090b',
                 fontSize: '0.72rem',
+                fontWeight: 700,
                 fontFamily: 'var(--font-mono)'
               }}>
                 [BEAM UNIT: {srp_operating_state.spm} SPM]
@@ -213,20 +214,20 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
                 position: 'absolute',
                 top: '50px',
                 bottom: '80px',
-                width: '28px',
-                borderLeft: '2px solid #64748b',
-                borderRight: '2px solid #64748b',
-                background: 'rgba(0, 0, 0, 0.4)',
+                width: '32px',
+                borderLeft: '2px solid #18181b',
+                borderRight: '2px solid #18181b',
+                background: '#e4e4e7',
                 display: 'flex',
                 justifyContent: 'center'
               }}>
                 {/* Sucker Rod String inside tubing */}
                 <div style={{
-                  width: '4px',
+                  width: '5px',
                   height: '100%',
-                  background: isFloating ? '#ff334b' : '#00e5ff',
-                  boxShadow: isFloating ? '0 0 8px #ff334b' : '0 0 6px #00e5ff',
-                  transition: 'background 0.3s ease'
+                  background: isFloating ? '#dc2626' : '#2563eb',
+                  boxShadow: isFloating ? '0 0 6px rgba(220,38,38,0.5)' : 'none',
+                  transition: 'background 0.2s ease'
                 }}></div>
               </div>
 
@@ -234,16 +235,18 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
               <div style={{
                 position: 'absolute',
                 bottom: '80px',
-                width: '40px',
-                height: '24px',
-                background: '#1e293b',
-                border: '2px solid #00e5ff',
-                borderRadius: '4px',
+                width: '46px',
+                height: '26px',
+                background: '#18181b',
+                border: '1px solid #18181b',
+                boxShadow: '1px 1px 0px #2563eb',
+                borderRadius: '3px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: '0.62rem',
-                color: '#fff',
+                fontWeight: 800,
+                color: '#ffffff',
                 fontFamily: 'var(--font-mono)'
               }}>
                 PUMP
@@ -253,12 +256,12 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
               <div style={{
                 position: 'absolute',
                 bottom: '10px',
-                width: `${140 * plumeScale}px`,
+                width: `${160 * plumeScale}px`,
                 height: '60px',
                 borderRadius: '50%',
-                background: `radial-gradient(ellipse at center, rgba(255, 109, 0, ${0.8 * plumeScale}) 0%, rgba(255, 61, 0, ${0.4 * plumeScale}) 60%, rgba(0,0,0,0) 100%)`,
-                filter: 'blur(8px)',
-                transition: 'all 0.4s ease'
+                background: `radial-gradient(ellipse at center, rgba(217, 119, 6, ${0.7 * plumeScale}) 0%, rgba(220, 38, 38, ${0.4 * plumeScale}) 60%, rgba(0,0,0,0) 100%)`,
+                border: '1px dashed #d97706',
+                transition: 'all 0.3s ease'
               }}></div>
 
               {/* Reservoir Label */}
@@ -266,7 +269,12 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
                 position: 'absolute',
                 bottom: '15px',
                 textAlign: 'center',
-                color: '#ff6d00',
+                color: '#09090b',
+                background: '#ffffff',
+                border: '1px solid #18181b',
+                boxShadow: '1px 1px 0px #18181b',
+                padding: '2px 8px',
+                borderRadius: '3px',
                 fontSize: '0.72rem',
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 700
@@ -276,11 +284,11 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
             </div>
 
             {/* Depth Segments Data Overlay */}
-            <div style={{ width: '150px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', fontSize: '0.7rem', color: '#94a3b8' }}>
+            <div style={{ width: '160px', display: 'flex', flexDirection: 'column', justifyContent: 'space-around', fontSize: '0.7rem', color: '#52525b' }}>
               {wellbore_profile_summary.map((seg, idx) => (
-                <div key={idx} style={{ background: 'rgba(0,0,0,0.3)', padding: '3px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.04)' }}>
-                  <div style={{ color: '#fff', fontWeight: 600 }}>Depth {seg.depth_m}m</div>
-                  <div style={{ color: '#ff6d00' }}>{seg.temperature_c}°C | {seg.viscosity_cp} cP</div>
+                <div key={idx} style={{ background: '#ffffff', padding: '4px 8px', borderRadius: '4px', border: '1px solid #18181b', boxShadow: '1px 1px 0px #18181b' }}>
+                  <div style={{ color: '#09090b', fontWeight: 700 }}>Depth {seg.depth_m}m</div>
+                  <div style={{ color: '#d97706', fontWeight: 600 }}>{seg.temperature_c}°C | {seg.viscosity_cp} cP</div>
                 </div>
               ))}
             </div>
@@ -292,23 +300,23 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
           {/* Dynamic Thermal Dissipation Card */}
           <div className="glass-panel" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <Thermometer size={18} color="#ff6d00" />
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>THERMAL DECAY & VISCOSITY RESPONSE</span>
+              <Thermometer size={18} color="#d97706" />
+              <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#09090b' }}>THERMAL DECAY & VISCOSITY RESPONSE</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Reservoir Temperature</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ff6d00', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ background: '#f8f9fa', border: '1px solid #18181b', boxShadow: '1px 1px 0px #18181b', padding: '12px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 600 }}>Reservoir Temperature</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#d97706', fontFamily: 'var(--font-mono)' }}>
                   {thermal_state.reservoir_temperature_c} °C
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>Native: 47.0°C | Peak: 192.0°C</div>
+                <div style={{ fontSize: '0.68rem', color: '#71717a', marginTop: '2px', fontWeight: 500 }}>Native: 47.0°C | Peak: 192.0°C</div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Fluid Viscosity (mu)</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: fluid_state.estimated_viscosity_cp > 2200 ? '#ff334b' : '#ffb300', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ background: '#f8f9fa', border: '1px solid #18181b', boxShadow: '1px 1px 0px #18181b', padding: '12px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 600 }}>Fluid Viscosity (μ)</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: fluid_state.estimated_viscosity_cp > 2200 ? '#dc2626' : '#d97706', fontFamily: 'var(--font-mono)' }}>
                   {fluid_state.estimated_viscosity_cp} cP
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>Darcy Mobility: {fluid_state.darcy_mobility_md_cp} mD/cP</div>
+                <div style={{ fontSize: '0.68rem', color: '#71717a', marginTop: '2px', fontWeight: 500 }}>Mobility: {fluid_state.darcy_mobility_md_cp} mD/cP</div>
               </div>
             </div>
           </div>
@@ -316,31 +324,31 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
           {/* Dynamic SRP Kinematics & Rod Float Risk */}
           <div className="glass-panel" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <Gauge size={18} color="#00e5ff" />
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>SRP DYNAMICS & COUETTE DRAG</span>
+              <Gauge size={18} color="#2563eb" />
+              <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#09090b' }}>SRP DYNAMICS & COUETTE DRAG</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Peak Rod Load (PPRL)</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00e5ff', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ background: '#f8f9fa', border: '1px solid #18181b', boxShadow: '1px 1px 0px #18181b', padding: '12px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 600 }}>Peak Rod Load (PPRL)</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#09090b', fontFamily: 'var(--font-mono)' }}>
                   {srp_operating_state.pprl_lbs} lbs
                 </div>
-                <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>MPRL: {srp_operating_state.mprl_lbs} lbs</div>
+                <div style={{ fontSize: '0.68rem', color: '#71717a', marginTop: '2px', fontWeight: 500 }}>MPRL: {srp_operating_state.mprl_lbs} lbs</div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Rod Floating Probability</div>
-                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: isFloating ? '#ff334b' : '#00e676', fontFamily: 'var(--font-mono)' }}>
+              <div style={{ background: '#f8f9fa', border: '1px solid #18181b', boxShadow: '1px 1px 0px #18181b', padding: '12px', borderRadius: '4px' }}>
+                <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 600 }}>Rod Floating Probability</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: isFloating ? '#dc2626' : '#15803d', fontFamily: 'var(--font-mono)' }}>
                   {Math.round(srp_operating_state.rod_floating_risk * 100)} %
                 </div>
-                <div style={{ fontSize: '0.68rem', color: isFloating ? '#ff334b' : '#00e676', marginTop: '2px' }}>
+                <div style={{ fontSize: '0.68rem', color: isFloating ? '#dc2626' : '#15803d', marginTop: '2px', fontWeight: 600 }}>
                   {isFloating ? 'CRITICAL SHOCK RISK' : 'POSITIVE SINKING MARGIN'}
                 </div>
               </div>
             </div>
 
             {/* Explanatory text */}
-            <div style={{ marginTop: '14px', fontSize: '0.76rem', color: '#cbd5e1', lineHeight: '1.4', background: 'rgba(0,0,0,0.25)', padding: '10px 12px', borderRadius: '6px' }}>
-              <strong>Digital Twin Physics Insight:</strong> At Day {scrubDay}, the formation thermal dissipation has dropped bottomhole temperature to {thermal_state.reservoir_temperature_c}°C. 
+            <div style={{ marginTop: '14px', fontSize: '0.76rem', color: '#3f3f46', lineHeight: '1.45', background: '#f8f9fa', border: '1px solid #18181b', padding: '10px 12px', borderRadius: '4px', fontWeight: 500 }}>
+              <strong style={{ color: '#09090b' }}>Digital Twin Physics Insight:</strong> At Day {scrubDay}, the formation thermal dissipation has dropped bottomhole temperature to {thermal_state.reservoir_temperature_c}°C. 
               {isFloating 
                 ? ' Viscous drag has exceeded rod gravitational sinking capability. The rod clamp is lifting off the carrier bar on downstroke, causing destructive impact pounding.'
                 : ' Sinker bars maintain adequate gravitational downstroke sinking velocity. Operating in safe fatigue envelope.'}
@@ -350,21 +358,12 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
           {/* Quick Action */}
           <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>Optimization Recommendation</div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Joint CSS steam volume + SRP VFD setpoints</div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#09090b' }}>Optimization Recommendation</div>
+              <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 500 }}>Joint CSS steam volume + SRP VFD setpoints</div>
             </div>
             <button
-              onClick={() => {}}
-              style={{
-                background: 'linear-gradient(135deg, #00e5ff 0%, #0077b6 100%)',
-                color: '#000',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '8px 14px',
-                fontSize: '0.78rem',
-                fontWeight: 800,
-                cursor: 'pointer'
-              }}
+              className="neo-btn neo-btn-accent"
+              style={{ fontSize: '0.78rem' }}
             >
               RUN JOINT OPTIMIZER
             </button>

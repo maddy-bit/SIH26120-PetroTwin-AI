@@ -62,10 +62,9 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
       bottom: 0,
       width: '460px',
       maxWidth: '90vw',
-      background: 'rgba(13, 18, 28, 0.96)',
-      backdropFilter: 'blur(20px)',
-      borderLeft: '1px solid rgba(0, 229, 255, 0.3)',
-      boxShadow: '-8px 0 32px rgba(0,0,0,0.5)',
+      background: '#ffffff',
+      borderLeft: '1px solid var(--border)',
+      boxShadow: '-6px 0 24px rgba(0,0,0,0.08)',
       zIndex: 100,
       display: 'flex',
       flexDirection: 'column'
@@ -73,47 +72,49 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
       {/* Header */}
       <div style={{
         padding: '16px 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between'
+        justifyContent: 'space-between',
+        background: '#ffffff'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '6px',
-            background: 'linear-gradient(135deg, #00e5ff 0%, #0077b6 100%)',
+            width: '30px',
+            height: '30px',
+            background: 'var(--text-main)',
+            border: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            boxShadow: '2px 2px 0px var(--shadow-color)'
           }}>
-            <Sparkles size={16} color="#000" />
+            <Sparkles size={16} color="#ffffff" />
           </div>
           <div>
-            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#fff' }}>PETRO-TWIN COPILOT</div>
-            <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>Grounded Petroleum Supervisor Agent</div>
+            <div style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--text-main)' }}>PETRO-TWIN COPILOT</div>
+            <div style={{ fontSize: '0.70rem', color: 'var(--text-muted)' }}>Grounded Petroleum Supervisor Agent</div>
           </div>
         </div>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-          <X size={20} />
+        <button onClick={onClose} style={{ background: '#f4f5f7', border: '1px solid var(--border)', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <X size={18} color="var(--text-main)" />
         </button>
       </div>
 
       {/* Messages Scroll Area */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#fafafa' }}>
         {messages.map((m, idx) => (
           <div
             key={idx}
             style={{
               alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
               maxWidth: '92%',
-              background: m.role === 'user' ? 'rgba(0, 229, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-              border: m.role === 'user' ? '1px solid rgba(0, 229, 255, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '10px',
+              background: m.role === 'user' ? 'var(--text-main)' : '#ffffff',
+              border: '1px solid var(--border)',
+              boxShadow: '2px 2px 0px var(--shadow-color)',
               padding: '12px 14px',
-              fontSize: '0.8rem',
-              color: '#f1f5f9',
+              fontSize: '0.82rem',
+              color: m.role === 'user' ? '#ffffff' : 'var(--text-main)',
               lineHeight: '1.5'
             }}
           >
@@ -132,7 +133,7 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
           </div>
         ))}
         {isLoading && (
-          <div style={{ alignSelf: 'flex-start', color: '#00e5ff', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ alignSelf: 'flex-start', color: 'var(--primary)', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
             <Sparkles size={14} />
             <span>Agent planning & calling physical calculators...</span>
           </div>
@@ -140,19 +141,20 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
       </div>
 
       {/* Quick Prompts Chips */}
-      <div style={{ padding: '8px 16px', display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div style={{ padding: '10px 16px', display: 'flex', flexWrap: 'wrap', gap: '6px', borderTop: '1px solid var(--border)', background: '#ffffff' }}>
         {quickPrompts.map((p, i) => (
           <button
             key={i}
             onClick={() => handleSend(p)}
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: '12px',
+              background: '#f8f9fa',
+              border: '1px solid var(--border)',
               padding: '4px 10px',
-              fontSize: '0.68rem',
-              color: '#94a3b8',
+              fontSize: '0.70rem',
+              color: 'var(--text-main)',
+              fontWeight: 600,
               cursor: 'pointer',
+              boxShadow: '1px 1px 0px var(--shadow-color)',
               transition: 'all 0.15s ease'
             }}
           >
@@ -162,7 +164,7 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
       </div>
 
       {/* Input Bar */}
-      <div style={{ padding: '14px 16px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', gap: '8px' }}>
+      <div style={{ padding: '14px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: '8px', background: '#ffffff' }}>
         <input
           type="text"
           placeholder="Ask engineering question..."
@@ -171,23 +173,23 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
           style={{
             flex: 1,
-            background: '#07090e',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '6px',
+            background: '#ffffff',
+            border: '1px solid var(--border)',
             padding: '8px 12px',
-            color: '#fff',
-            fontSize: '0.8rem',
-            outline: 'none'
+            color: 'var(--text-main)',
+            fontSize: '0.82rem',
+            outline: 'none',
+            fontFamily: 'var(--font-main)'
           }}
         />
         <button
           onClick={() => handleSend()}
           style={{
-            background: '#00e5ff',
-            color: '#000',
-            border: 'none',
-            borderRadius: '6px',
-            padding: '0 14px',
+            background: 'var(--primary)',
+            color: '#ffffff',
+            border: '1px solid var(--border)',
+            boxShadow: '2px 2px 0px var(--shadow-color)',
+            padding: '0 16px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',

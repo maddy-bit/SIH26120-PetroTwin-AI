@@ -83,8 +83,7 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'rgba(0, 0, 0, 0.82)',
-      backdropFilter: 'blur(12px)',
+      background: 'rgba(0, 0, 0, 0.5)',
       zIndex: 200,
       display: 'flex',
       alignItems: 'center',
@@ -92,12 +91,11 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
       padding: '20px'
     }}>
       <div style={{
-        background: '#0d131f',
-        border: '1px solid rgba(0, 229, 255, 0.4)',
-        borderRadius: '14px',
-        width: '750px',
+        background: '#ffffff',
+        border: '1px solid var(--border)',
+        width: '740px',
         maxWidth: '100%',
-        boxShadow: '0 0 40px rgba(0, 229, 255, 0.25)',
+        boxShadow: '6px 6px 0px var(--shadow-color)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden'
@@ -105,39 +103,40 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
         {/* Modal Header */}
         <div style={{
           padding: '16px 24px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          borderBottom: '1px solid var(--border)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(0, 229, 255, 0.05)'
+          background: '#f8f9fa'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Award size={20} color="#ff6d00" />
-            <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#fff' }}>
+            <Award size={20} color="var(--primary)" />
+            <span style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.02em' }}>
               SIH 2026 OFFICIAL 5-MINUTE JURY DEMO WALKTHROUGH
             </span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-            <X size={20} />
+          <button onClick={onClose} style={{ background: '#ffffff', border: '1px solid var(--border)', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={18} color="var(--text-main)" />
           </button>
         </div>
 
         {/* Step Progress Pills */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', padding: '16px 24px', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', padding: '16px 24px', gap: '8px', borderBottom: '1px solid var(--border)', background: '#ffffff' }}>
           {stages.map((s) => (
             <button
               key={s.minute}
               onClick={() => handleSelectStage(s.minute)}
               style={{
-                background: currentMinute === s.minute ? 'rgba(0, 229, 255, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                border: currentMinute === s.minute ? '1px solid #00e5ff' : '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '6px',
-                padding: '8px',
-                color: currentMinute === s.minute ? '#00e5ff' : '#94a3b8',
-                fontSize: '0.72rem',
-                fontWeight: 700,
+                background: currentMinute === s.minute ? 'var(--text-main)' : '#f4f5f7',
+                border: '1px solid var(--border)',
+                boxShadow: currentMinute === s.minute ? '2px 2px 0px var(--shadow-color)' : 'none',
+                padding: '10px',
+                color: currentMinute === s.minute ? '#ffffff' : 'var(--text-muted)',
+                fontSize: '0.74rem',
+                fontWeight: 800,
                 cursor: 'pointer',
-                textAlign: 'center'
+                textAlign: 'center',
+                textTransform: 'uppercase'
               }}
             >
               Min {s.minute}
@@ -146,44 +145,45 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
         </div>
 
         {/* Active Stage Body */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#00e5ff' }}>
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', background: '#ffffff' }}>
+          <div style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--text-main)' }}>
             {activeStage.title}
           </div>
-          <div style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.6' }}>
+          <div style={{ fontSize: '0.86rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
             {activeStage.summary}
           </div>
           <div style={{
-            background: 'rgba(0, 230, 118, 0.08)',
-            border: '1px solid rgba(0, 230, 118, 0.3)',
-            borderRadius: '8px',
+            background: '#f0fdf4',
+            border: '1px solid #16a34a',
+            boxShadow: '2px 2px 0px var(--shadow-color)',
             padding: '12px 16px',
-            fontSize: '0.78rem',
-            color: '#00e676'
+            fontSize: '0.80rem',
+            color: '#15803d',
+            lineHeight: '1.5'
           }}>
-            <strong>Key Technical Defense:</strong> {activeStage.keyTakeaway}
+            <strong style={{ fontWeight: 800 }}>Key Technical Defense: </strong> {activeStage.keyTakeaway}
           </div>
         </div>
 
         {/* Footer Actions */}
         <div style={{
           padding: '16px 24px',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          borderTop: '1px solid var(--border)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(0,0,0,0.2)'
+          background: '#f8f9fa'
         }}>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              color: '#fff',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '6px',
+              background: '#ffffff',
+              color: 'var(--text-main)',
+              border: '1px solid var(--border)',
+              boxShadow: '2px 2px 0px var(--shadow-color)',
               padding: '8px 16px',
               fontSize: '0.78rem',
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -201,10 +201,10 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
                 onClose();
               }}
               style={{
-                background: '#00e5ff',
-                color: '#000',
-                border: 'none',
-                borderRadius: '6px',
+                background: 'var(--primary)',
+                color: '#ffffff',
+                border: '1px solid var(--border)',
+                boxShadow: '2px 2px 0px var(--shadow-color)',
                 padding: '8px 20px',
                 fontSize: '0.82rem',
                 fontWeight: 800,
