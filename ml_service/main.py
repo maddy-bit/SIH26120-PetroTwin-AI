@@ -319,6 +319,7 @@ def simulate_scenario_endpoint(req: ScenarioRequest):
 # --- Optimization Endpoints ---
 
 @app.post("/optimize", tags=["Optimization"])
+@app.post("/optimize/joint", tags=["Optimization"])
 def run_optimization_endpoint(req: OptimizeRequest):
     return agent.optimize_operations(
         req.well_id, req.weight_production, req.weight_sor, req.weight_energy, req.weight_risk
@@ -328,6 +329,7 @@ def run_optimization_endpoint(req: OptimizeRequest):
 # --- Agentic AI Copilot Endpoint ---
 
 @app.post("/api/copilot/query", tags=["Agentic AI"])
+@app.post("/agent/query", tags=["Agentic AI"])
 def query_copilot(req: CopilotQueryRequest):
     return agent.handle_user_query(req.query, req.well_id)
 
