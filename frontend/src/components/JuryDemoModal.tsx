@@ -112,7 +112,7 @@ export const JuryDemoModal: React.FC<JuryDemoProps> = ({ isOpen, onClose, onNavi
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Award size={20} color="var(--primary)" />
             <span style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.02em' }}>
-              SIH 2026 OFFICIAL 5-MINUTE JURY DEMO WALKTHROUGH
+              PETRO-TWIN ENTERPRISE 5-MINUTE SYSTEM WALKTHROUGH
             </span>
           </div>
           <button onClick={onClose} style={{ background: '#ffffff', border: '1px solid var(--border)', padding: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

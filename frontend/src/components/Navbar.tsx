@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.01em', color: '#09090b' }}>
                 PETRO-TWIN <span style={{ color: '#2563eb' }}>AI</span>
               </span>
-              <span className="tech-badge badge-cyan" style={{ fontSize: '0.65rem' }}>SIH26120</span>
+              <span className="tech-badge badge-cyan" style={{ fontSize: '0.65rem' }}>OIL INDIA LTD</span>
             </div>
             <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 500 }}>
               Oil India Limited • Baghewala Field Jodhpur Sandstone Digital Twin
@@ -124,14 +124,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </select>
           </div>
 
-          {/* SIH Jury Demo Action */}
+          {/* System Walkthrough Action */}
           <button
             onClick={onOpenJuryDemo}
             className="neo-btn neo-btn-primary"
             style={{ fontSize: '0.78rem' }}
           >
             <Play size={14} fill="#ffffff" />
-            <span>5-MIN JURY DEMO</span>
+            <span>5-MIN SYSTEM TOUR</span>
           </button>
 
           {/* AI Copilot Drawer Trigger */}

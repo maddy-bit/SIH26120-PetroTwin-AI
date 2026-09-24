@@ -150,7 +150,7 @@ export function App() {
         selectedWell={selectedWell}
       />
 
-      {/* 5-Minute SIH Jury Demo Guided Walkthrough */}
+      {/* 5-Minute Guided System Walkthrough */}
       <JuryDemoModal
         isOpen={isJuryModalOpen}
         onClose={() => setIsJuryModalOpen(false)}
@@ -169,7 +169,7 @@ export function App() {
         background: '#ffffff'
       }}>
         <div style={{ fontWeight: 600 }}>
-          PETRO-TWIN AI v1.4.0 • Built for Smart India Hackathon 2026 (SIH26120) • Oil India Limited (Baghewala Field)
+          PETRO-TWIN AI Enterprise • Oil India Limited • Baghewala Heavy Oil Field Asset Management System
         </div>
         <div style={{ display: 'flex', gap: '16px', fontWeight: 600 }}>
           <span>Physics-Informed Hybrid Digital Twin</span>
