@@ -13,13 +13,27 @@ from typing import Dict, Any, List
 from sklearn.ensemble import IsolationForest
 
 
+import os
+import joblib
+
 class AnomalyDetector:
     """
     Telemetry stream anomaly detector.
     """
     def __init__(self, contamination: float = 0.05):
-        self.model = IsolationForest(contamination=contamination, random_state=42)
-        self._fit_baseline()
+        saved_path = os.path.join(os.path.dirname(__file__), "..", "saved_models", "anomaly_detector.joblib")
+        if os.path.exists(saved_path):
+            try:
+                self.model = joblib.load(saved_path)
+                self.model_status = "TRAINED (Pre-trained IsolationForest)"
+            except Exception:
+                self.model = IsolationForest(contamination=contamination, random_state=42)
+                self._fit_baseline()
+                self.model_status = "ONLINE_CALIBRATED (IsolationForest)"
+        else:
+            self.model = IsolationForest(contamination=contamination, random_state=42)
+            self._fit_baseline()
+            self.model_status = "ONLINE_CALIBRATED (IsolationForest)"
 
     def _fit_baseline(self):
         """Fits baseline normal operating distributions for Baghewala SRP wells."""
@@ -63,6 +77,7 @@ class AnomalyDetector:
             severity = "CRITICAL" if len(anomaly_reasons) > 1 or pprl_lbs > 22000.0 else "WARNING"
 
         return {
+            "model_status": self.model_status,
             "is_anomaly": is_anomaly or len(anomaly_reasons) > 0,
             "anomaly_score": round(score, 4),
             "severity": severity,

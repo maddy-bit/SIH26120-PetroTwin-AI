@@ -127,12 +127,18 @@ $$\text{If } v_{\text{max, horsehead}} \ge 0.80 \cdot v_{\text{terminal}} \impli
    ```
    *Expected: `10 tests in 1.09s, 0 errors, OK`*
 
-3. **One-Command Local Launcher (Windows PowerShell):**
+3. **Train / Re-train All Machine Learning Models:**
+   ```bash
+   python scripts/train_models.py
+   ```
+   *Trains the GradientBoosting production forecaster, RandomForest rod-floating classifier, and IsolationForest anomaly detector over 3,500 physics-consistent cycles, saving serialized `.joblib` binaries into `ml_service/saved_models/`.*
+
+4. **One-Command Local Launcher (Windows PowerShell):**
    ```powershell
    .\scripts\run_all_local.ps1
    ```
 
-4. **Or Run Services Manually:**
+5. **Or Run Services Manually:**
    * **Terminal 1 (Physics & ML Service):**
      ```bash
      python -m uvicorn ml_service.main:app --host 127.0.0.1 --port 8000 --reload

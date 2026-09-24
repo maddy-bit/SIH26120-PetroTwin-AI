@@ -16,6 +16,8 @@ from typing import Dict, Any, List
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+import joblib
+import numpy as np
 from physics.srp_model import SRPModel
 from physics.viscosity_model import ViscosityModel
 
@@ -28,6 +30,21 @@ class FailurePredictor:
         self.version = version
         self.srp_model = SRPModel()
         self.visc_model = ViscosityModel()
+
+        saved_rf = os.path.join(os.path.dirname(__file__), "..", "saved_models", "rod_floating_classifier.joblib")
+        saved_pr = os.path.join(os.path.dirname(__file__), "..", "saved_models", "parted_rod_classifier.joblib")
+
+        self.rf_classifier = None
+        self.pr_classifier = None
+        if os.path.exists(saved_rf) and os.path.exists(saved_pr):
+            try:
+                self.rf_classifier = joblib.load(saved_rf)
+                self.pr_classifier = joblib.load(saved_pr)
+                self.model_status = "TRAINED (Pre-trained RandomForest + GradientBoosting)"
+            except Exception:
+                self.model_status = "PHYSICS_CALIBRATED (API RP 11L + Couette Shear)"
+        else:
+            self.model_status = "PHYSICS_CALIBRATED (API RP 11L + Couette Shear)"
 
     def predict_failure_risks(self, stroke_length_m: float, spm: float, temp_c: float,
                               pressure_bar: float = 55.0, days_in_production: int = 45) -> Dict[str, Any]:
@@ -51,6 +68,20 @@ class FailurePredictor:
         cycle_wear_factor = 1.0 + min(0.6, (days_in_production / 120.0) * 0.4)
         
         raw_parted_rod_risk = (fatigue_stress_ratio * 0.4 + impact_load_risk * 0.6) * 0.18 * cycle_wear_factor
+
+        # Incorporate ML Trained Classifier Probabilities if available
+        if self.rf_classifier is not None and self.pr_classifier is not None:
+            try:
+                X_feat = np.array([[temp_c, viscosity_cp, spm, stroke_length_m, float(days_in_production)]])
+                ml_rf_prob = float(self.rf_classifier.predict_proba(X_feat)[0][1])
+                ml_pr_prob = float(self.pr_classifier.predict_proba(X_feat)[0][1])
+
+                # Ensemble: 50% physics first-principles + 50% trained ML classifier
+                rod_float_risk = float(round(0.5 * rod_float_risk + 0.5 * ml_rf_prob, 3))
+                raw_parted_rod_risk = 0.5 * raw_parted_rod_risk + 0.5 * ml_pr_prob
+            except Exception:
+                pass
+
         parted_rod_risk = float(round(min(0.95, max(0.015, raw_parted_rod_risk)), 3))
 
         # Pump Unseating Risk (Upward fluid friction + vacuum suction)
@@ -87,6 +118,7 @@ class FailurePredictor:
 
         return {
             "model_version": self.version,
+            "model_status": self.model_status,
             "overall_health_score": round(health_score, 1),
             "current_viscosity_cp": viscosity_cp,
             "risks": {
