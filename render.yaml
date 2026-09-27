@@ -10,3 +10,18 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
+
+  - type: web
+    name: petrotwin-backend
+    env: docker
+    dockerfilePath: docker/Dockerfile.backend
+    dockerContext: .
+    region: oregon
+    plan: free
+    branch: main
+    envVars:
+      - key: ML_SERVICE_URL
+        value: https://petrotwin-ml-service.onrender.com
+      - key: SPRING_PROFILES_ACTIVE
+        value: local
+
