@@ -10,6 +10,7 @@
 [![PostgreSQL](https://img.shields.io/badge/Database-TimescaleDB%20%7C%20PostgreSQL%2016-336791.svg?style=flat-square)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Containers-Docker%20Compose-2496ed.svg?style=flat-square)](https://www.docker.com)
 [![Tests Passing](https://img.shields.io/badge/Tests-10%2F10%20Passing%20(100%25)-brightgreen.svg?style=flat-square)]()
+[![CI/CD Pipeline](https://github.com/maddy-bit/SIH26120-PetroTwin-AI/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/maddy-bit/SIH26120-PetroTwin-AI/actions)
 
 ---
 
@@ -264,6 +265,19 @@ The system is configured for 1-click zero-downtime deployment:
    * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
    * Root Directory: `frontend`
    * Environment Variable: `VITE_API_URL=https://<your-render-service>.onrender.com`
+
+---
+
+## 🔄 Automated CI/CD Pipeline (GitHub Actions)
+
+Every pull request and push to `main` executes a multi-stage validation pipeline:
+1. **Frontend CI:** Node 20 + TypeScript compilation (`tsc -b`) + Vite production build (`dist/` artifact archive).
+2. **ML & Physics CI:** Python 3.12 + 10 unit test suites + FastAPI health check validation (`TestClient`).
+3. **Spring Boot Backend CI:** Java 21 (Temurin) + Maven compilation + Flyway migrations on embedded test profile.
+4. **Docker Validation:** Multi-container builds for ML microservice, Spring Boot backend, and frontend.
+5. **Continuous Deployment:** Instant deployment on Vercel and Render.
+
+> 📖 **Full Pipeline Documentation:** See [docs/19-ci-cd-pipeline.md](docs/19-ci-cd-pipeline.md).
 
 ---
 
