@@ -247,6 +247,26 @@ SIH26120-PetroTwin-AI/
 
 ---
 
+## ☁️ Cloud Deployment (Render + Vercel)
+
+The system is configured for 1-click zero-downtime deployment:
+* **ML & Physics Backend:** Deployed on **Render** using Python 3.12 / FastAPI (`render.yaml` included).
+* **Control Room Frontend:** Deployed on **Vercel** using React 19 / Vite (`vercel.json` included).
+
+> 📖 **Full Step-by-Step Instructions:** See [docs/18-cloud-deployment-guide.md](docs/18-cloud-deployment-guide.md) for full configuration details.
+
+### Quick Deployment Summary:
+1. **Render (Backend):**
+   * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
+   * Build Command: `pip install -r ml_service/requirements.txt`
+   * Start Command: `uvicorn ml_service.main:app --host 0.0.0.0 --port $PORT`
+2. **Vercel (Frontend):**
+   * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
+   * Root Directory: `frontend`
+   * Environment Variable: `VITE_API_URL=https://<your-render-service>.onrender.com`
+
+---
+
 ## 🌐 Key REST API Endpoints
 
 | Method | Endpoint | Description |
