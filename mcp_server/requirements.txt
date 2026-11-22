@@ -1,0 +1,2 @@
+# Official MCP Python SDK v2; server API uses MCPServer.
+mcp==2.3.0
