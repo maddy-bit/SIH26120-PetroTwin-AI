@@ -1,100 +1,66 @@
-# PETRO-TWIN AI: Database Schema & Entity Relationships
-## PostgreSQL & TimescaleDB Data Models
+# PETRO-TWIN AI — Actual Database Schema and Persistence
 
----
+This document describes the **implemented** repository schema. It supersedes older design sketches in this file that referred to TimescaleDB hypertables, telemetry tables, recommendation tables and a separate audit_logs table. Those objects are not created by the active migrations.
 
-### 1. Entity Relationship Overview
-The database layout supports relational entities, time-series telemetry hypertables, and immutable audit logs:
+## Database engines and repository boundary
 
-```sql
--- Wells Registry
-CREATE TABLE wells (
-    well_id VARCHAR(50) PRIMARY KEY,
-    well_name VARCHAR(100) NOT NULL,
-    field_name VARCHAR(100) DEFAULT 'Baghewala',
-    reservoir_name VARCHAR(100) DEFAULT 'Jodhpur Sandstone',
-    depth_m NUMERIC(8,2) NOT NULL,
-    pump_depth_m NUMERIC(8,2) NOT NULL,
-    tubing_id_mm NUMERIC(6,2) NOT NULL,
-    casing_id_mm NUMERIC(6,2) NOT NULL,
-    active_cycle_number INT DEFAULT 1,
-    status VARCHAR(30) DEFAULT 'ACTIVE_PRODUCTION',
-    data_source_mode VARCHAR(30) DEFAULT 'SIMULATION',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+The active application uses one repository implementation with two supported engines:
+- **SQLite** for local development and isolated unit/integration tests.
+- **PostgreSQL 16** for the Docker Compose runtime.
 
--- High-Frequency Telemetry (TimescaleDB Hypertable)
-CREATE TABLE telemetry (
-    time TIMESTAMP WITH TIME ZONE NOT NULL,
-    well_id VARCHAR(50) REFERENCES wells(well_id),
-    bottomhole_temp_c NUMERIC(6,2),
-    bottomhole_pressure_bar NUMERIC(6,2),
-    wellhead_pressure_bar NUMERIC(6,2),
-    oil_rate_bpd NUMERIC(8,2),
-    water_rate_bpd NUMERIC(8,2),
-    steam_rate_bpd NUMERIC(8,2),
-    viscosity_est_cp NUMERIC(8,2),
-    spm NUMERIC(5,2),
-    stroke_length_m NUMERIC(4,2),
-    vfd_frequency_hz NUMERIC(5,2),
-    peak_polished_rod_load_lbs NUMERIC(8,2),
-    min_polished_rod_load_lbs NUMERIC(8,2),
-    motor_power_kw NUMERIC(6,2),
-    rod_floating_detected BOOLEAN DEFAULT FALSE,
-    rod_floating_risk NUMERIC(5,4),
-    data_quality_status VARCHAR(20) DEFAULT 'GOOD'
-);
+FastAPI, physics services, the calibration pipeline, ML registry and MCP server share the repository boundary. Spring Boot/Flyway is legacy/dormant and is not the active application database path.
 
--- CSS Cycle Records
-CREATE TABLE css_cycles (
-    cycle_id VARCHAR(60) PRIMARY KEY,
-    well_id VARCHAR(50) REFERENCES wells(well_id),
-    cycle_number INT NOT NULL,
-    steam_mass_tons NUMERIC(8,2) NOT NULL,
-    steam_temp_c NUMERIC(6,2) NOT NULL,
-    steam_pressure_bar NUMERIC(6,2) NOT NULL,
-    soak_days NUMERIC(4,1) NOT NULL,
-    production_days INT,
-    cumulative_oil_bbl NUMERIC(10,2),
-    cumulative_sor NUMERIC(6,2),
-    cycle_status VARCHAR(30) DEFAULT 'COMPLETED',
-    started_at TIMESTAMP WITH TIME ZONE,
-    ended_at TIMESTAMP WITH TIME ZONE
-);
+The PostgreSQL connection is configured through `DATABASE_URL`. Docker Compose provisions PostgreSQL 16 and waits for `pg_isready` before starting FastAPI. PostgreSQL data uses a named volume. Field-model files are stored separately in a named artifact volume.
 
--- AI Recommendations & Human-in-the-Loop Audit
-CREATE TABLE recommendations (
-    recommendation_id VARCHAR(60) PRIMARY KEY,
-    well_id VARCHAR(50) REFERENCES wells(well_id),
-    generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    model_version VARCHAR(30) NOT NULL,
-    opt_engine_version VARCHAR(30) NOT NULL,
-    recommended_spm NUMERIC(5,2),
-    recommended_stroke_m NUMERIC(4,2),
-    recommended_vfd_hz NUMERIC(5,2),
-    recommended_next_steam_tons NUMERIC(8,2),
-    recommended_soak_days NUMERIC(4,1),
-    expected_prod_change_pct NUMERIC(5,2),
-    expected_sor_change_pct NUMERIC(5,2),
-    expected_energy_change_pct NUMERIC(5,2),
-    expected_risk_change_pct NUMERIC(5,2),
-    confidence_pct NUMERIC(5,2),
-    rationale TEXT,
-    approval_status VARCHAR(30) DEFAULT 'PENDING_REVIEW', -- APPROVED, REJECTED
-    reviewed_by VARCHAR(50),
-    reviewed_at TIMESTAMP WITH TIME ZONE,
-    audit_notes TEXT
-);
+## Versioned migrations
 
--- Immutable Security & Operational Audit Log
-CREATE TABLE audit_logs (
-    log_id BIGSERIAL PRIMARY KEY,
-    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    user_id VARCHAR(50),
-    user_role VARCHAR(30),
-    action VARCHAR(100) NOT NULL,
-    well_id VARCHAR(50),
-    request_ip VARCHAR(50),
-    details JSONB
-);
-```
+The repository creates `schema_migrations(version, applied_at)` and currently applies versions 1–9.
+
+| Version | Tables / purpose |
+|---:|---|
+| 1 | `wells`, `analysis_runs` — well configuration and saved analysis payloads |
+| 2 | `data_sources`, `measurements`, `ingestion_rejections` — normalized measurements, source identity, quality and rejected-row provenance |
+| 3 | `twin_state_snapshots` — persisted digital-twin state snapshots |
+| 4 | `well_physical_configurations`, `physics_execution_runs` — versioned physical configuration and physics run payloads |
+| 5 | `calibration_datasets`, `calibration_runs`, `calibration_candidates`, `validation_runs`, `validation_policies`, `calibration_candidate_events` — calibration lifecycle and validation records |
+| 6 | `css_cycles`, `operational_events`, `srp_operational_records`, `operational_measurement_links` — registered CSS/SRP operational evidence linked to measurement records |
+| 7 | `auth_users`, `auth_sessions`, `auth_audit_events` — accounts, revocable sessions and security audit |
+| 8 | `agent_runs` — saved evidence-agent responses and MCP traces |
+| 9 | `model_registry` — measured-data model lifecycle, validation metrics and artifact checksums |
+
+The migrations use portable repository SQL and JSON text payloads where the domain records are schema-versioned. Do not assume TimescaleDB extensions, hypertables or a high-frequency telemetry schema are installed.
+
+## Key entities
+
+### Wells and measurements
+
+- `wells` stores a well ID and JSON configuration.
+- `data_sources` stores a source ID, source type, display name, configured timestamp and latest ingestion timestamp.
+- `measurements` stores one variable/value/unit/time/quality observation for a well and source, plus optional external ID and provenance JSON. A uniqueness constraint prevents duplicate observations for the same well/source/time/variable.
+- `ingestion_rejections` retains rejected input rows and their reasons.
+
+The application currently supports validated manual CSV/JSON ingestion. No production historian, SCADA, MQTT or OPC-UA connector is configured.
+
+### Calibration and operational evidence
+
+Calibration tables store dataset fingerprints and payloads, calibration runs/candidates, validation policy versions and validation events. Operational records store CSS cycle, operational event and SRP record payloads with stable fingerprints; `operational_measurement_links` associates an operational entity with measured records.
+
+### Authentication and audit
+
+- `auth_users` stores normalized username, salted scrypt password hash, role, active state and timestamps.
+- `auth_sessions` stores issued/expiry/revocation times. JWTs are signed but a database session must still be active.
+- `auth_audit_events` stores login/logout, account-management, agent/model actions and HTTP access-denial events with correlation ID, IP and JSON details.
+
+Passwords are never stored in plaintext. No default admin account is seeded.
+
+### Agent runs and model registry
+
+`agent_runs` stores question, result, model identifier, actor, status and full MCP tool trace.
+
+`model_registry` stores the well/horizon/model family, lifecycle status, feature schema, dataset fingerprint, sample/split counts, metrics, artifact path and SHA-256. The serialized sklearn model is stored as a separate file under `PETROTWIN_FIELD_MODEL_ARTIFACT_DIR`, mounted to a Compose named volume. Inference and promotion verify artifact integrity before use.
+
+## Retention, backups and operational controls
+
+The current repository implements persistent storage but does not define a managed backup schedule, point-in-time recovery policy, retention policy, archival tier, cross-region replication or verified RPO/RTO. Configure and test those at the deployment environment before public production operation.
+
+No TimescaleDB or external telemetry-store claim is made. High-rate historian ingestion and retention/partitioning strategy require a separately designed and load-tested extension.

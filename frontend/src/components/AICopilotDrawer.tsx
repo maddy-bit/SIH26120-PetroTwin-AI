@@ -12,18 +12,18 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; text: string; tools?: string[] }>>([
     {
       role: 'assistant',
-      text: `Hello! I am the **PetroTwin Agentic AI Copilot**. I am connected directly to the **Baghewala Jodhpur Sandstone Digital Twin**, physics solvers, and deterministic tool supervisor for well **${selectedWell}**.\n\nHow can I assist your operational decisions today?`,
-      tools: ['get_well_state']
+      text: `PETRO-TWIN evidence assistant for **${selectedWell}**. I retrieve registered well configuration, measured records, data quality and operational history through read-only MCP tools. Model conclusions are not field validation or operating instructions.`,
+      tools: []
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const quickPrompts = [
-    "Why did failure risk increase?",
-    "Recommend next CSS cycle settings",
-    "What happens if we increase soak time?",
-    "Forecast production for next 30 days"
+    "Summarize the measured conditions for this well",
+    "What evidence is missing for CSS-SRP calibration?",
+    "Compare the recorded CSS cycles and SRP records",
+    "What can be concluded from the latest measured data?"
   ];
 
   const handleSend = async (queryText?: string) => {
@@ -41,10 +41,10 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
         text: res.answer,
         tools: res.tools_used
       }]);
-    } catch {
+    } catch (error) {
       setMessages((prev) => [...prev, {
         role: 'assistant',
-        text: 'An error occurred querying the agent service. Operating in offline fallback mode.',
+        text: error instanceof Error ? error.message : 'The agent request failed. No fallback answer was generated.',
         tools: []
       }]);
     } finally {
@@ -135,7 +135,7 @@ export const AICopilotDrawer: React.FC<CopilotProps> = ({ isOpen, onClose, selec
         {isLoading && (
           <div style={{ alignSelf: 'flex-start', color: 'var(--primary)', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
             <Sparkles size={14} />
-            <span>Agent planning & calling physical calculators...</span>
+            <span>Retrieving measured evidence through read-only MCP tools…</span>
           </div>
         )}
       </div>

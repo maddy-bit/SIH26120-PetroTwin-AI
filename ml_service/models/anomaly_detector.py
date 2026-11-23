@@ -25,15 +25,15 @@ class AnomalyDetector:
         if os.path.exists(saved_path):
             try:
                 self.model = joblib.load(saved_path)
-                self.model_status = "TRAINED (Pre-trained IsolationForest)"
+                self.model_status = "TRAINED (synthetic baseline)"
             except Exception:
                 self.model = IsolationForest(contamination=contamination, random_state=42)
                 self._fit_baseline()
-                self.model_status = "ONLINE_CALIBRATED (IsolationForest)"
+                self.model_status = "SYNTHETIC_BASELINE (IsolationForest fitted on generated examples)"
         else:
             self.model = IsolationForest(contamination=contamination, random_state=42)
             self._fit_baseline()
-            self.model_status = "ONLINE_CALIBRATED (IsolationForest)"
+            self.model_status = "SYNTHETIC_BASELINE (IsolationForest fitted on generated examples)"
 
     def _fit_baseline(self):
         """Fits baseline normal operating distributions for Baghewala SRP wells."""

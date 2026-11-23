@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Play, RotateCcw, Clock, Thermometer, Gauge, Layers } from 'lucide-react';
 import { TelemetryFrame } from '../types/petro';
 import { api } from '../services/api';
@@ -11,19 +11,23 @@ interface DigitalTwinProps {
 export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, selectedWell }) => {
   const [scrubDay, setScrubDay] = useState<number>(currentTelemetry?.cycle_info.days_in_production || 68);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [twinState, setTwinState] = useState<TelemetryFrame | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Derive dynamic state for the current scrubbed day
-  const twinState = api.getTimeMachineState(selectedWell, scrubDay);
+  useEffect(() => {
+    let cancelled = false;
+    setTwinState(null);
+    setLoadError(null);
+    api.getTimeMachineState(selectedWell, scrubDay)
+      .then((state) => { if (!cancelled) setTwinState(state); })
+      .catch((error: unknown) => {
+        if (!cancelled) setLoadError(error instanceof Error ? error.message : 'Unable to load the simulated state.');
+      });
+    return () => { cancelled = true; };
+  }, [selectedWell, scrubDay]);
 
-  const { thermal_state, fluid_state, srp_operating_state, wellbore_profile_summary } = twinState;
-
-  // Thermal plume radius (scales with temperature: 47C is 0%, 200C is 100%)
-  const plumeScale = Math.min(1.0, Math.max(0.15, (thermal_state.reservoir_temperature_c - 47.0) / 150.0));
-  const isFloating = srp_operating_state.rod_floating_detected;
-
-  // Handle play/pause time machine animation
-  React.useEffect(() => {
-    let timer: any;
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
     if (isPlaying) {
       timer = setInterval(() => {
         setScrubDay((prev) => {
@@ -31,12 +35,24 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
             setIsPlaying(false);
             return prev;
           }
-          return prev + 2;
+          return Math.min(150, prev + 5);
         });
-      }, 150);
+      }, 1000);
     }
-    return () => clearInterval(timer);
+    return () => { if (timer) clearInterval(timer); };
   }, [isPlaying]);
+
+  if (!twinState) {
+    return <div role={loadError ? 'alert' : 'status'} style={{ padding: '40px', color: loadError ? '#991b1b' : '#52525b' }}>
+      {loadError ? `Time machine unavailable: ${loadError}` : 'Loading simulated well state…'}
+    </div>;
+  }
+
+  const { thermal_state, fluid_state, srp_operating_state, wellbore_profile_summary } = twinState;
+
+  // Thermal plume radius (scales with temperature: 47C is 0%, 200C is 100%)
+  const plumeScale = Math.min(1.0, Math.max(0.15, (thermal_state.reservoir_temperature_c - 47.0) / 150.0));
+  const isFloating = srp_operating_state.rod_floating_detected;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px 20px' }}>
@@ -359,7 +375,7 @@ export const DigitalTwinView: React.FC<DigitalTwinProps> = ({ currentTelemetry, 
           <div className="glass-panel" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#09090b' }}>Optimization Recommendation</div>
-              <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 500 }}>Joint CSS steam volume + SRP VFD setpoints</div>
+              <div style={{ fontSize: '0.72rem', color: '#52525b', fontWeight: 500 }}>Simulated thermal and SRP state projections</div>
             </div>
             <button
               className="neo-btn neo-btn-accent"

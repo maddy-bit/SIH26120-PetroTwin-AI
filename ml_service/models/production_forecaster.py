@@ -2,7 +2,7 @@
 PETRO-TWIN AI: Hybrid Production Forecaster
 ===========================================
 Combines Darcy inflow + API 11L volumetric lift physics with an empirical machine learning residual.
-Generates multi-horizon forecasts (t+1, t+7, t+30) with 95% confidence intervals.
+Generates multi-horizon point estimates with explicitly uncalibrated heuristic ranges.
 """
 
 import math
@@ -23,7 +23,7 @@ class ProductionForecaster:
     """
     Hybrid Physics-ML Heavy Oil Production Forecaster.
     """
-    def __init__(self, model_version: str = "v1.4.0"):
+    def __init__(self, model_version: str = "unvalidated-synthetic-v1"):
         self.version = model_version
         self.visc_model = ViscosityModel()
         self.srp_model = SRPModel()
@@ -39,12 +39,12 @@ class ProductionForecaster:
                 self.residual_model = Ridge(alpha=1.0)
                 self._initialize_residual_weights()
                 self.is_trained = False
-                self.model_status = "ONLINE_CALIBRATED (Ridge)"
+                self.model_status = "SYNTHETIC_FALLBACK (Ridge fitted on generated examples)"
         else:
             self.residual_model = Ridge(alpha=1.0)
             self._initialize_residual_weights()
             self.is_trained = False
-            self.model_status = "ONLINE_CALIBRATED (Ridge)"
+            self.model_status = "SYNTHETIC_FALLBACK (Ridge fitted on generated examples)"
 
     def _initialize_residual_weights(self):
         """Pre-calibrates residual model with typical Baghewala literature patterns."""
@@ -114,7 +114,8 @@ class ProductionForecaster:
             "model_name": "hybrid_production_forecaster",
             "model_version": self.version,
             "model_status": self.model_status,
-            "training_dataset": "Tier-A Volve + Tier-B Baghewala Literature",
+            "training_dataset": "Synthetic physics-generated records; not field validated",
+            "range_method": "Heuristic percentage bands; not calibrated prediction intervals",
             "current_viscosity_cp": viscosity_cp,
             "physics_baseline_bpd": round(physics_baseline, 1),
             "ml_residual_bpd": round(residual, 2),
@@ -122,25 +123,25 @@ class ProductionForecaster:
                 "t_plus_1": {
                     "day": 1,
                     "prediction_bpd": round(t1_point, 1),
-                    "lower_95_bpd": round(t1_point * 0.95, 1),
-                    "upper_95_bpd": round(t1_point * 1.05, 1),
+                    "lower_estimate_bpd": round(t1_point * 0.95, 1),
+                    "upper_estimate_bpd": round(t1_point * 1.05, 1),
                     "uncertainty_pct": 5.0
                 },
                 "t_plus_7": {
                     "day": 7,
                     "prediction_bpd": round(t7_point, 1),
-                    "lower_95_bpd": round(t7_point * 0.92, 1),
-                    "upper_95_bpd": round(t7_point * 1.08, 1),
+                    "lower_estimate_bpd": round(t7_point * 0.92, 1),
+                    "upper_estimate_bpd": round(t7_point * 1.08, 1),
                     "uncertainty_pct": 8.0
                 },
                 "t_plus_30": {
                     "day": 30,
                     "prediction_bpd": round(t30_point, 1),
-                    "lower_95_bpd": round(t30_point * 0.86, 1),
-                    "upper_95_bpd": round(t30_point * 1.14, 1),
+                    "lower_estimate_bpd": round(t30_point * 0.86, 1),
+                    "upper_estimate_bpd": round(t30_point * 1.14, 1),
                     "uncertainty_pct": 14.0
                 }
             },
             "data_quality": "GOOD",
-            "confidence": "HIGH"
+            "confidence": "NOT_CALIBRATED"
         }

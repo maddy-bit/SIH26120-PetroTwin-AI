@@ -1,39 +1,25 @@
-# PETRO-TWIN AI: 5-Minute SIH Jury Demo Script
-## Seamless Presentation Walkthrough for Hackathon Evaluation
+# PETRO-TWIN AI — five-minute local demonstration
 
----
+## Before the demo
 
-### Minute 1: The Heavy Oil Dilemma & Domain Challenge
-* **Presenter:** "Respected judges, Baghewala Field in Rajasthan produces heavy oil (18° API). At reservoir conditions (47°C), the oil is thick like tar—over 4,000 centipoise. To make it flow, Oil India injects high-pressure steam in Cyclic Steam Stimulation (CSS). But here is the critical operational challenge: as the reservoir cools over 100 days, the oil thickens again. The Sucker Rod Pump (SRP) struggles to sink through the thick oil, causing **rod floating**, impact pounding, and snapped rod strings."
-* **Action:** Show the **Overview Dashboard** (`/dashboard`). Point to the live indicators: `Crude Viscosity: 4,120 cP`, `Reservoir Temp: 58.2°C`, `Rod Float Risk: Warning (58%)`. Point out the scientific honesty badge: `DATA MODE: SIMULATION (LITERATURE-CALIBRATED)`.
+Choose one environment deliberately:
 
----
+- **Simulation/demo mode:** built-in BW-DEMO wells and generated telemetry are available. Every output is synthetic/simulation-only.
+- **Field mode:** no synthetic wells are created. Register an actual well and ingest permissioned measurements with canonical units, source metadata and VALID/SUSPECT quality status. If no data is loaded, the correct result is an explicit unavailable/blocked state.
 
-### Minute 2: Real-Time Telemetry & Dynamometer Card
-* **Presenter:** "Notice our live WebSocket telemetry. The system streams correlated sensor data: bottomhole temperature, pressure, polished rod load, and high-frequency dynamometer card coordinates."
-* **Action:** Click into **Live Operations & Dynamometer Analyzer**. Show the live load-displacement loop. Point out the characteristic distorted shape at the bottom of the stroke indicating downstroke rod lag and traveling valve throttling.
+For the authenticated Compose profile, set a unique JWT secret and create the first admin with scripts/manage_users.py. The default development profile has authentication disabled and must not be exposed to a shared/public network.
 
----
+The Evidence Copilot requires PETROTWIN_AGENT_BASE_URL and PETROTWIN_AGENT_MODEL, plus an API key where the provider requires it. Without these, its investigation endpoint returns HTTP 503; do not imply an LLM response has been generated.
 
-### Minute 3: Digital Twin & 180-Day Time Machine
-* **Presenter:** "This is not just a UI; it is a true Cyber-Physical Digital Twin with discretized 1D wellbore thermal hydraulics and Marx-Langenheim heat balance."
-* **Action:** Open the **Digital Twin** tab (`/digital-twin`). Scrub the **Time Machine** slider from `Day 10` to `Day 110`. 
-* **Key Visual:** As the slider moves, the reservoir temperature graph drops from 195°C to 54°C, viscosity exponentially climbs from 18 cP to 3,400 cP, and the rod floating risk badge switches from `SAFE` to `CRITICAL ALERT`.
+## Demonstration flow
 
----
+1. **System health and sign-in:** show /health database readiness, required-auth status and the authenticated user/role.
+2. **Field Data:** register a well, ingest CSV/JSON, inspect accepted/rejected counts, units, provenance and data quality. Use a supplied approved dataset only.
+3. **Coupled Scenario Lab:** in simulation mode, vary steam mass, soak, production day, stroke and SPM. Show the returned CSS heat → cooling → viscosity → SRP trace and its explicit SIMULATION_ONLY / not-calibrated status.
+4. **Optimization:** run the finite-grid review. Explain its implemented constraints, weights, fixed horizon and excluded engineering limits. It does not dispatch setpoints and is not a validated global optimum.
+5. **Evidence Copilot:** ask a read-only evidence question. Show the retrieved source IDs/timestamps/units and stored tool trace. If no LLM provider is configured, show the service-disabled state instead of fabricating an answer.
+6. **Field Models:** show measured-data candidate requirements, chronological/purged train-validation-test split, persistence baseline, model registry and explicit admin promotion. Without enough field measurements, the trainer must reject the attempt. Controlled fixture tests are not a trained field model.
 
-### Minute 4: What-If Scenario Lab & Pareto Optimization
-* **Presenter:** "Traditionally, reservoir engineers schedule steam cycles in one office, while artificial lift engineers set pump speed in another. PETRO-TWIN AI optimizes them jointly."
-* **Action:** Open the **Scenario Lab & Optimizer** (`/optimizer`). 
-* Move the SPM slider from 8.5 down to 5.2 and click **Run Multi-Objective Optimization**.
-* Show the interactive **Pareto Frontier (Production vs SOR vs Risk)**.
-* Show the AI recommendation card: `Recommended: SPM 5.4, Stroke 2.8m, Next Steam Volume 2,400 tons`. 
-* Highlight the trade-off analysis: `+18.4% Net Oil, -22% SOR, Zero Rod Floating Risk`.
+## Claims to avoid
 
----
-
-### Minute 5: Deterministic Agentic Copilot & Jury Takeaway
-* **Presenter:** "Finally, our Agentic AI Copilot is not a chatbot hallucinating numbers. It orchestrates 14 deterministic backend tools with strict physical guardrails."
-* **Action:** Open the **AI Copilot** side-drawer. Click the quick prompt: *"Why did failure risk increase and what do you recommend for Well BW-DEMO-001?"*
-* **Response:** The Copilot identifies the well, invokes `get_well_state()`, calls `predict_failure()`, queries `optimize_operations()`, and outputs a structured engineering briefing with exact parameters, confidence intervals, and constraint compliance status.
-* **Closing:** "PETRO-TWIN AI transforms heavy oil operations from reactive crisis management into proactive, physics-informed, profit-maximizing intelligence. Thank you."
+Do not call synthetic telemetry field data, do not claim real field calibration/validation, do not report unverified performance figures, do not present heuristic failure scores as calibrated probabilities, and do not describe any output as an operating setpoint.

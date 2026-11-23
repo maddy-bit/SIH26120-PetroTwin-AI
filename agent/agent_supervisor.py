@@ -114,9 +114,14 @@ class AgentSupervisor:
         return self.srp_model.evaluate_srp_performance(stroke_length_m, spm, avg_viscosity_cp)
 
     # --- Tool 10: run_scenario ---
-    def run_scenario(self, steam_tons: float, soak_days: float, stroke_m: float, spm: float) -> Dict[str, Any]:
+    def run_scenario(self, steam_tons: float, soak_days: float, stroke_m: float, spm: float,
+                     well_id: str = "BW-DEMO-001") -> Dict[str, Any]:
         """Evaluates a what-if scenario across both CSS and SRP domains."""
-        return self.optimizer.evaluate_candidate(steam_tons, soak_days, stroke_m, spm)
+        state = self.get_well_state(well_id)
+        return self.optimizer.evaluate_candidate(
+            steam_tons, soak_days, stroke_m, spm,
+            days_in_cycle=state["cycle_info"]["days_in_production"],
+        )
 
     # --- Tool 11: optimize_operations ---
     def optimize_operations(self, well_id: str = "BW-DEMO-001", weight_prod: float = 0.40,
@@ -128,7 +133,8 @@ class AgentSupervisor:
             "oil_rate_bpd": state["production_state"]["oil_rate_bpd"],
             "sor": state["cycle_info"]["sor_cumulative"],
             "energy_kwh_bbl": state["srp_operating_state"]["kwh_per_barrel"],
-            "failure_risk": state["srp_operating_state"]["rod_floating_risk"]
+            "failure_risk": state["srp_operating_state"]["rod_floating_risk"],
+            "days_in_production": state["cycle_info"]["days_in_production"]
         }
         return self.optimizer.run_optimization(current_summary, weight_prod, weight_sor, weight_energy, weight_risk)
 
@@ -148,10 +154,10 @@ class AgentSupervisor:
 
     # --- Tool 13: get_model_explanation ---
     def get_model_explanation(self, well_id: str = "BW-DEMO-001") -> Dict[str, Any]:
-        """Provides SHAP-equivalent feature attribution for recent predictions."""
+        """Provides heuristic feature contribution scores for the current risk estimate."""
         fail_res = self.predict_failure(well_id)
         return {
-            "feature_attribution": fail_res["feature_attribution_shap"],
+            "feature_attribution": fail_res["feature_contributions"],
             "primary_driver": "Fluid Viscosity increase due to reservoir thermal decay"
         }
 
@@ -189,6 +195,12 @@ class AgentSupervisor:
             failure = self.predict_failure(well_id)
             tools_called.append("optimize_operations")
             opt = self.optimize_operations(well_id)
+            if not opt.get("recommended_plan"):
+                return {
+                    "answer": f"No feasible CSS–SRP candidate was found for {well_id}. No operating recommendation is available. Review the rejected candidates and the model's stated limitations.",
+                    "tools_used": tools_called,
+                    "evidence_data": {"current_state": state, "failure_analysis": failure, "optimization": opt},
+                }
             tools_called.append("check_constraints")
 
             answer = (
@@ -202,13 +214,14 @@ class AgentSupervisor:
                 f"At the current pumping rate of {state['srp_operating_state']['spm']} SPM, the downstroke carrier bar is descending faster than the rod terminal sinking velocity, inducing severe rod floating and impact loading risks.\n\n"
                 f"**Recommended Operating Plan:**\n"
                 f"- **SRP Adjustment:** Lower SPM to **{opt['recommended_plan']['srp']['spm']} SPM** (VFD: **{opt['recommended_plan']['srp']['vfd_frequency_hz']} Hz**) with stroke length **{opt['recommended_plan']['srp']['stroke_length_m']} m**.\n"
-                f"- **Next CSS Thermal Cycle:** Inject **{opt['recommended_plan']['css']['steam_volume_tons']} tons** CWE steam with **{opt['recommended_plan']['css']['soak_time_days']} days** soak at day {opt['recommended_plan']['css']['target_cutoff_days']}.\n\n"
+                f"- **CSS scenario candidate:** **{opt['recommended_plan']['css']['steam_volume_tons']} tons** CWE steam with **{opt['recommended_plan']['css']['soak_time_days']} days** soak. Cycle-oil and SOR estimates use a {opt['recommended_plan']['css']['production_horizon_days']}-day horizon; cutoff timing and injection pressure are not optimized.\n\n"
                 f"**Expected Outcome:**\n"
                 f"- Oil Production: **{opt['expected_outcome']['production_change_pct']:+}% model estimate** ({opt['expected_outcome']['production_bpd']} bpd)\n"
                 f"- Steam-Oil Ratio: **{opt['expected_outcome']['sor_change_pct']:+}% model estimate** (SOR: {opt['expected_outcome']['sor']})\n"
                 f"- Specific Energy: **{opt['expected_outcome']['energy_change_pct']:+}% model estimate**\n"
                 f"- Failure Risk: **{opt['expected_outcome']['failure_risk_change_pct']:+}% model estimate** (Drops into SAFE envelope)\n\n"
-                f"**Confidence & Compliance:** Confidence = **{opt['expected_outcome']['confidence_pct']}%** | Constraints = **ALL PASSED**."
+                f"**Constraint Check:** Candidate feasibility is {opt['constraint_verification']['candidate_feasible']}. "
+                f"Checks not evaluated: {', '.join(opt['constraint_verification']['checks_not_evaluated'])}."
             )
             return {
                 "answer": answer,
@@ -232,7 +245,7 @@ class AgentSupervisor:
                 f"- **Impact Loading Risk:** **{round(failure['risks']['impact_loading']['probability']*100, 1)}%** ({failure['risks']['impact_loading']['level']})\n"
                 f"- **Parted Rod Fatigue Risk:** **{round(failure['risks']['parted_rod']['probability']*100, 1)}%** ({failure['risks']['parted_rod']['level']})\n"
                 f"- **Pump Unseating Risk:** **{round(failure['risks']['pump_unseating']['probability']*100, 1)}%** ({failure['risks']['pump_unseating']['level']})\n\n"
-                f"**Primary Contributing Factors (SHAP Feature Attribution):**\n"
+                f"**Primary Heuristic Risk Factors (not SHAP):**\n"
                 + "\n".join([f"- {item['feature']}: **{item['contribution_pct']}%**" for item in exp['feature_attribution']]) +
                 f"\n\n**Actionable Guidance:**\n{failure['recommended_action']}."
             )
@@ -250,9 +263,9 @@ class AgentSupervisor:
             answer = (
                 f"### Production Forecast for {well_id}\n\n"
                 f"- **Current Rate:** {state['production_state']['oil_rate_bpd']} bbl/day\n"
-                f"- **t+1 Day Forecast:** **{horizons['t_plus_1']['prediction_bpd']} ± {round((horizons['t_plus_1']['upper_95_bpd'] - horizons['t_plus_1']['prediction_bpd']), 1)} bbl/day** (95% CI: [{horizons['t_plus_1']['lower_95_bpd']} – {horizons['t_plus_1']['upper_95_bpd']}])\n"
-                f"- **t+7 Day Forecast:** **{horizons['t_plus_7']['prediction_bpd']} ± {round((horizons['t_plus_7']['upper_95_bpd'] - horizons['t_plus_7']['prediction_bpd']), 1)} bbl/day** (95% CI: [{horizons['t_plus_7']['lower_95_bpd']} – {horizons['t_plus_7']['upper_95_bpd']}])\n"
-                f"- **t+30 Day Forecast:** **{horizons['t_plus_30']['prediction_bpd']} ± {round((horizons['t_plus_30']['upper_95_bpd'] - horizons['t_plus_30']['prediction_bpd']), 1)} bbl/day** (95% CI: [{horizons['t_plus_30']['lower_95_bpd']} – {horizons['t_plus_30']['upper_95_bpd']}])\n\n"
+                f"- **t+1 Day Estimate:** **{horizons['t_plus_1']['prediction_bpd']} bbl/day** (heuristic range: {horizons['t_plus_1']['lower_estimate_bpd']}–{horizons['t_plus_1']['upper_estimate_bpd']})\n"
+                f"- **t+7 Day Estimate:** **{horizons['t_plus_7']['prediction_bpd']} bbl/day** (heuristic range: {horizons['t_plus_7']['lower_estimate_bpd']}–{horizons['t_plus_7']['upper_estimate_bpd']})\n"
+                f"- **t+30 Day Estimate:** **{horizons['t_plus_30']['prediction_bpd']} bbl/day** (heuristic range: {horizons['t_plus_30']['lower_estimate_bpd']}–{horizons['t_plus_30']['upper_estimate_bpd']})\n\n"
                 f"**Methodology:** Hybrid Darcy Inflow + API 11L Physics + Empirical ML Residual ({pred['model_version']})."
             )
             return {

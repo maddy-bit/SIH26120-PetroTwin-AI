@@ -5,16 +5,14 @@
 [![Target Operator](https://img.shields.io/badge/Operator-Oil%20India%20Limited-darkred.svg?style=flat-square)](https://www.oil-india.com)
 [![Target Field](https://img.shields.io/badge/Field-Baghewala%20Heavy%20Oil%20(Rajasthan)-green.svg?style=flat-square)]()
 [![React 19](https://img.shields.io/badge/Frontend-React%2019%20%7C%20Vite%20%7C%20Tailwind%20%7C%20Recharts-61dafb.svg?style=flat-square)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/ML%20Engine-FastAPI%20%7C%20Python%203.12-009688.svg?style=flat-square)](https://fastapi.tiangolo.com)
-[![Spring Boot](https://img.shields.io/badge/Backend-Spring%20Boot%203.3%20%7C%20Java%2021-6db33f.svg?style=flat-square)](https://spring.io)
+[![FastAPI](https://img.shields.io/badge/Backend%20%2B%20Physics%20%2B%20ML-FastAPI%20%7C%20Python%203.12-009688.svg?style=flat-square)](https://fastapi.tiangolo.com)
 [![PostgreSQL](https://img.shields.io/badge/Database-TimescaleDB%20%7C%20PostgreSQL%2016-336791.svg?style=flat-square)](https://www.postgresql.org)
 [![Docker](https://img.shields.io/badge/Containers-Docker%20Compose-2496ed.svg?style=flat-square)](https://www.docker.com)
-[![Tests Passing](https://img.shields.io/badge/Tests-10%2F10%20Passing%20(100%25)-brightgreen.svg?style=flat-square)]()
 [![CI/CD Pipeline](https://github.com/maddy-bit/SIH26120-PetroTwin-AI/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/maddy-bit/SIH26120-PetroTwin-AI/actions)
 
 ---
 
-## 📌 Problem Context: SIH26120
+## 📌 Project Scenario Assumptions (Not Validated Field Data)
 
 * **Organization:** Oil India Limited (OIL)
 * **Category:** Software
@@ -35,38 +33,33 @@ As the well is put on **Sucker Rod Pump (SRP)** production:
 
 ## 💡 Solution Overview: PETRO-TWIN AI
 
-**PETRO-TWIN AI** is an end-to-end cyber-physical digital twin that synchronizes reservoir thermodynamic decline with surface sucker rod mechanical pumping to optimize oil production, reduce steam consumption, and eliminate mechanical failures.
+**PETRO-TWIN AI** is a synthetic decision-support prototype exploring how post-CSS thermal decline and viscosity changes relate to SRP loading, failure-risk heuristics, and joint steam/pump trade-offs. It does not eliminate failures, use field telemetry, or prescribe operational setpoints.
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        REACT 19 CONTROL ROOM UI                        │
-│  - Field Overview KPI   - 180-Day Time Machine  - Dyno Card Analyzer   │
-│  - CSS Optimization     - SRP Pumping Schedule  - Failure Intel (SHAP) │
-│  - Scenario Lab         - Pareto 3D Frontier    - 5-Min Jury Demo Flow │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ HTTP REST / WebSockets
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    REACT CONTROL ROOM + AUTH GATE                        │
+│  Field Data • CSS/SRP Scenario Lab • Coupled Physics • Pareto Review     │
+│  Evidence Copilot • Model Registry • Source/Quality Status              │
+└───────────────────────────────────┬──────────────────────────────────────┘
+                                    │ HTTP REST / WebSocket
                                     ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                   AGENTIC AI SUPERVISOR (LLM TOOL GATEWAY)             │
-│  - Zero-hallucination deterministic domain supervisor                  │
-│  - 14 verified engineering tools (get_well_state, simulate, optimize)  │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Internal Dispatch
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         FASTAPI APPLICATION                              │
+│  Authentication/RBAC • Request Validation • Ingestion • Orchestration   │
+├──────────────────────────────────────────────────────────────────────────┤
+│ Physics/CSS→Cooling→Viscosity→SRP • Calibration • Field ML Training      │
+│ Finite-Grid Optimizer • Read-only MCP-backed Industrial Agent            │
+└───────────────────────────────────┬──────────────────────────────────────┘
+                                    │ Repository + model artifacts
                                     ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│              HYBRID PHYSICS-INFORMED ML MICROSERVICE (FastAPI)         │
-│  - Walther ASTM D341 Viscosity   - Marx-Langenheim Heat Plume Model   │
-│  - 1D Wellbore Discretization    - API RP 11L Rod Mechanics & Drag    │
-│  - Conformal 95% CI Forecaster   - Isolation Forest Anomaly Engine    │
-│  - NSGA-II / SLSQP Optimizer     - Live Correlated Telemetry Streamer │
-└───────────────────────────────────┬────────────────────────────────────┘
-                                    │ Persistence & Event Bus
-                                    ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│              ENTERPRISE SERVICES & EVENT HYPERTABLES                   │
-│  - Spring Boot 3.3 Gateway (Flyway migrations, OpenAPI Swagger docs)   │
-│  - TimescaleDB / PostgreSQL 16 (High-frequency telemetry series)       │
-└────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    POSTGRESQL 16 / SQLITE                                │
+│  Measurements & Provenance • Calibration • Users/Audit • Agent Runs     │
+│  Model Registry • SHA-256-verified Field Model Artifacts                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+Agent path: FastAPI AgentRuntime → MCP stdio client → read-only PETRO-TWIN MCP tools
+           → shared repository evidence → configured OpenAI-compatible LLM
 ```
 
 ---
@@ -94,19 +87,15 @@ $$\text{If } v_{\text{max, horsehead}} \ge 0.80 \cdot v_{\text{terminal}} \impli
 
 ---
 
-## 🏆 Key Simulation Benchmark Results
+## Evaluation status
 
-| Strategy | Oil Rate MAE | Temp RMSE | Rod Float Detection | Unsafe Setting Rate | Net Optimization Delta |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Historical Fixed Practice** | N/A | N/A | 0% *(Blind)* | 48.2% | Baseline |
-| **Pure ML (XGBoost/LSTM)** | 14.8 bbl/d | 8.4 °C | 64.2% | 22.5% | Moderate |
-| **Pure Physics (Analytical)**| 12.1 bbl/d | 5.2 °C | 88.0% | 4.8% | Good |
-| **Hybrid Physics + ML**      | **4.2 bbl/d**| **2.0 °C** | **96.8%** | **0.0%** | Superior |
-| **Hybrid + Pareto Optimizer**| **4.2 bbl/d**| **2.0 °C** | **98.4%** | **0.0%** | **+18.4% Net Oil, -22% SOR** |
+The checked-in training report evaluates on synthetic records generated from the same simulator and rule labels used by the project. It is not a field benchmark or independent validation. Current forecast ranges are heuristics, and the optimizer performs a finite grid search. Demo outputs are not measured performance or operational prescriptions.
 
 ---
 
 ## 🚀 Quickstart Guide
+
+For the reproducible Windows setup, start/stop commands, health checks, and troubleshooting, see [docs/dev-setup.md](docs/dev-setup.md).
 
 ### Prerequisites
 * **Python 3.11+**
@@ -122,17 +111,18 @@ $$\text{If } v_{\text{max, horsehead}} \ge 0.80 \cdot v_{\text{terminal}} \impli
    cd SIH26120-PetroTwin-AI
    ```
 
-2. **Run all automated tests:**
+2. **Install dependencies and run all automated tests:**
    ```bash
+   pip install -r requirements.txt
    python scripts/test_all.py
    ```
-   *Expected: `10 tests in 1.09s, 0 errors, OK`*
+   The root requirements file installs both the FastAPI service dependencies and the pinned MCP SDK.
 
 3. **Train / Re-train All Machine Learning Models:**
    ```bash
    python scripts/train_models.py
    ```
-   *Trains the GradientBoosting production forecaster, RandomForest rod-floating classifier, and IsolationForest anomaly detector over 3,500 physics-consistent cycles, saving serialized `.joblib` binaries into `ml_service/saved_models/`.*
+   Optional: regenerates synthetic model artifacts in `ml_service/saved_models/`. This overwrites those tracked artifacts; use only when intentionally retraining.
 
 4. **One-Command Local Launcher (Windows PowerShell):**
    ```powershell
@@ -147,7 +137,7 @@ $$\text{If } v_{\text{max, horsehead}} \ge 0.80 \cdot v_{\text{terminal}} \impli
    * **Terminal 2 (React Control Room Frontend):**
      ```bash
      cd frontend
-     npm install
+     npm ci
      npm run dev
      ```
    * **Open Browser:** `http://localhost:5173` (or `http://localhost:3000`)
@@ -156,16 +146,28 @@ $$\text{If } v_{\text{max, horsehead}} \ge 0.80 \cdot v_{\text{terminal}} \impli
 
 ### Option B: Full Stack Docker Compose
 
-```bash
+```powershell
+Copy-Item .env.example .env
+# Replace POSTGRES_PASSWORD in .env with a strong URL-safe local password.
 docker compose up --build
 ```
 
 **Service Endpoints:**
 * **Frontend Web Dashboard:** [http://localhost:3000](http://localhost:3000)
-* **Spring Boot API Gateway:** [http://localhost:8080](http://localhost:8080)
-* **OpenAPI / Swagger Documentation:** [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-* **FastAPI ML Microservice Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
-* **PostgreSQL / TimescaleDB:** `localhost:5432`
+* **Canonical application API:** FastAPI at [http://localhost:8000](http://localhost:8000)
+* Spring Boot is legacy source only, outside the frontend request path.
+* **FastAPI API docs:** [http://localhost:8000/docs](http://localhost:8000/docs) in local development; hidden in required-auth mode.
+* PostgreSQL is internal to the Compose network; no host port is published.
+
+For local development/demonstration, the default Compose profile runs with authentication disabled and must remain bound to a trusted local machine. To run the authenticated production-oriented profile, configure a secret and use the override:
+
+```powershell
+$env:PETROTWIN_JWT_SECRET = (python -c "import secrets; print(secrets.token_urlsafe(48))")
+docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --build --wait
+docker compose -f docker-compose.yml -f docker-compose.production.yml run --rm ml-service python scripts/manage_users.py create --username <admin-username> --role admin
+```
+
+The first administrator is created interactively; there is no default password. Configure TLS, rate limiting, CSP, managed secrets, backups and production monitoring before public exposure.
 
 ---
 
@@ -174,8 +176,12 @@ docker compose up --build
 ```text
 SIH26120-PetroTwin-AI/
 ├── agent/                         # Agentic AI Copilot & Deterministic Tool Supervisor
-│   └── agent_supervisor.py
-├── backend/                       # Spring Boot 3.3.x Enterprise Gateway
+│   ├── agent_supervisor.py         # Legacy deterministic simulation supervisor
+│   └── agent_runtime.py             # Read-only MCP-backed LLM investigation runtime
+├── mcp_server/                      # Official MCP SDK server: read-only tools/resources/prompts
+│   ├── server.py
+│   └── requirements.txt
+├── backend/                       # Dormant Spring Boot source and legacy migrations
 │   └── springboot/
 │       ├── pom.xml
 │       └── src/main/
@@ -183,7 +189,7 @@ SIH26120-PetroTwin-AI/
 │           └── resources/
 │               ├── application.yml
 │               └── db/migration/  # Flyway V1 schema & V2 seed migrations
-├── config/                        # Verified empirical physics parameters
+├── config/                        # Explicit model defaults and assumptions; not field calibration
 │   └── physics.yaml
 ├── data/                          # Data source governance & registry
 │   └── sources/
@@ -216,30 +222,38 @@ SIH26120-PetroTwin-AI/
 ├── frontend/                      # React 19 + TypeScript + Vite + Tailwind Control Room
 │   ├── package.json
 │   ├── src/
-│   │   ├── components/            # Dyno Card, Time Machine, Pareto UI
-│   │   ├── services/api.ts        # Fault-tolerant resilient API client
+│   │   ├── components/            # AuthGate, Field Models, Copilot, Dyno/Pareto/Scenario UI
+│   │   ├── services/api.ts        # FastAPI client with explicit error states
 │   │   ├── types/petro.ts         # Strictly typed engineering domain interfaces
 │   │   ├── App.tsx
 │   │   └── index.css
 │   └── vite.config.ts
 ├── ml_service/                    # Python FastAPI Physics & ML Microservice
 │   ├── main.py                    # REST and WebSocket endpoints
-│   ├── config.py                  # Calibrated constants
+│   ├── config.py                  # Runtime, database, auth and agent configuration
 │   ├── models/                    # Forecaster, Failure Predictor, Anomaly Detector
-│   ├── optimizer/                 # Pareto Frontier Multi-Objective Solver
-│   ├── simulator/                 # Correlated Physics Telemetry Streamer
+│   ├── optimizer/                 # Finite grid search and nondominated filtering
+│   ├── services/                  # Ingestion, calibration, measured-data ML training
+│   ├── auth.py                    # Password, JWT session and RBAC service
+│   ├── persistence.py             # SQLite/PostgreSQL repository and migrations
+│   ├── simulator/                 # Synthetic telemetry for simulation mode
 │   └── requirements.txt
 ├── physics/                       # First-principles petroleum physics package
 │   ├── __init__.py
 │   ├── thermal_model.py           # Marx-Langenheim heat balance
 │   ├── viscosity_model.py         # ASTM D341 Walther viscosity equation
 │   ├── wellbore_model.py          # 1D discretized wellbore hydraulics
-│   └── srp_model.py               # API 11L kinematics, Couette drag & dyno cards
-├── scripts/                       # Automated test and run scripts
-│   ├── run_all_local.ps1          # Single-click Windows launcher
+│   ├── srp_model.py               # Approximate SRP mechanics and dyno cards
+│   └── coupled_css_srp_model.py   # Shared CSS → cooling → viscosity → SRP simulation chain
+├── scripts/                       # Automated test, run and account-provisioning scripts
+│   ├── run_all_local.ps1          # Test, then start local services and check health
+│   ├── start-dev.ps1              # Start FastAPI and Vite
+│   ├── stop-dev.ps1               # Stop the recorded development processes
+│   ├── health-check.ps1           # Check FastAPI and Vite
 │   ├── seed_database.py          # Telemetry and well state seeder
-│   └── test_all.py                # Unified test runner
-├── tests/                         # Physics & ML unit test suites
+│   ├── test_all.py                # Unified test runner
+│   └── manage_users.py             # Interactive first-admin/user provisioning
+├── tests/                         # Physics, ML, auth, agent and integration test suites
 │   ├── test_physics.py
 │   └── test_ml_service.py
 ├── docker-compose.yml             # Container orchestration
@@ -248,23 +262,23 @@ SIH26120-PetroTwin-AI/
 
 ---
 
-## ☁️ Cloud Deployment (Render + Vercel)
+## ☁️ Cloud Deployment
 
-The system is configured for 1-click zero-downtime deployment:
-* **ML & Physics Backend:** Deployed on **Render** using Python 3.12 / FastAPI (`render.yaml` included).
-* **Control Room Frontend:** Deployed on **Vercel** using React 19 / Vite (`vercel.json` included).
+Optional deployment configuration exists for Render/Vercel, but is not part of the verified local application workflow.
 
 > 📖 **Full Step-by-Step Instructions:** See [docs/18-cloud-deployment-guide.md](docs/18-cloud-deployment-guide.md) for full configuration details.
 
 ### Quick Deployment Summary:
 1. **Render (Backend):**
    * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
-   * Build Command: `pip install -r ml_service/requirements.txt`
+   * Build Command: `pip install -r requirements.txt` (run from repository root; includes MCP SDK)
    * Start Command: `uvicorn ml_service.main:app --host 0.0.0.0 --port $PORT`
 2. **Vercel (Frontend):**
    * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
    * Root Directory: `frontend`
    * Environment Variable: `VITE_API_URL=https://<your-render-service>.onrender.com`
+
+These are configuration examples only; this deployment path has not been validated. See [deployment status and prerequisites](docs/18-cloud-deployment-guide.md).
 
 ---
 
@@ -272,10 +286,9 @@ The system is configured for 1-click zero-downtime deployment:
 
 Every pull request and push to `main` executes a multi-stage validation pipeline:
 1. **Frontend CI:** Node 20 + TypeScript compilation (`tsc -b`) + Vite production build (`dist/` artifact archive).
-2. **ML & Physics CI:** Python 3.12 + 10 unit test suites + FastAPI health check validation (`TestClient`).
-3. **Spring Boot Backend CI:** Java 21 (Temurin) + Maven compilation + Flyway migrations on embedded test profile.
-4. **Docker Validation:** Multi-container builds for ML microservice, Spring Boot backend, and frontend.
-5. **Continuous Deployment:** Instant deployment on Vercel and Render.
+2. **ML & Physics CI:** Python 3.12 + test suite + FastAPI health check validation (`TestClient`).
+3. **Container validation:** FastAPI and frontend Dockerfile builds.
+4. Deployment is separate from this CI workflow and must be independently configured and verified.
 
 > 📖 **Full Pipeline Documentation:** See [docs/19-ci-cd-pipeline.md](docs/19-ci-cd-pipeline.md).
 
@@ -285,15 +298,26 @@ Every pull request and push to `main` executes a multi-stage validation pipeline
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/health` | System health check and status |
-| `GET` | `/api/v1/well/{well_id}/state` | Latest well telemetry, temperature, viscosity, and rod loads |
-| `GET` | `/api/v1/well/{well_id}/history` | Historical time series telemetry for time machine scrubbing |
-| `POST` | `/api/v1/predict/production` | Hybrid physics-ML oil forecasting with 95% conformal CIs |
-| `POST` | `/api/v1/predict/failure` | Multi-hazard failure analysis (Rod floating, Parted rod, SHAP) |
-| `POST` | `/api/v1/optimize/joint` | Joint CSS + SRP multi-objective Pareto optimization |
-| `GET` | `/api/v1/well/{well_id}/dynocard` | Surface & pump dynamometer card stroke coordinates |
-| `POST` | `/api/v1/agent/query` | Natural language Agentic AI Copilot query executor |
-| `WS` | `/ws/telemetry/{well_id}` | Live streaming real-time downhole telemetry feed |
+
+| `GET` | `/health` | Liveness, database and auth-mode status |
+| `GET` | `/api/wells` | Registered well list; demo wells appear only in simulation mode |
+| `POST` | `/api/v1/measurements/csv` | Validated field-measurement CSV ingestion with quality/provenance |
+| `GET` | `/api/v1/wells/{well_id}/data-quality` | Data-quality and availability summary |
+| `POST` | `/simulate/scenario` | Simulation-only CSS–SRP coupled scenario and intermediate physics trace |
+| `POST` | `/optimize/joint` | Finite-grid candidate comparison; decision-support only |
+| `GET` | `/api/v1/agent/status` | Read-only MCP agent/provider readiness |
+| `POST` | `/api/v1/agent/investigate` | Evidence-grounded LLM investigation (requires configured model provider) |
+| `GET` | `/api/v1/agent/runs` | Persisted agent responses and read-only tool traces |
+| `POST` | `/api/v1/auth/login` | Username/password sign-in |
+| `GET` | `/api/v1/auth/me` | Current authenticated session |
+| `POST` | `/api/v1/auth/logout` | Revoke current session |
+| `GET/POST/PATCH` | `/api/v1/auth/users` | Admin user/role management |
+| `POST` | `/api/v1/models/production/train` | Train measured-data candidate (field mode only) |
+| `GET` | `/api/v1/models/production` | Model registry for the selected well |
+| `POST` | `/api/v1/models/{model_id}/promote` | Admin-only artifact verification and promotion |
+| `GET` | `/api/v1/models/production/predict` | Inference using a promoted field model and fresh VALID inputs |
+
+Protected endpoints require a bearer token when `PETROTWIN_AUTH_MODE=required`. Synthetic prediction and telemetry routes remain simulation-only; read [docs/16-limitations.md](docs/16-limitations.md) before interpreting model or optimization outputs.
 
 ---
 
@@ -301,28 +325,22 @@ Every pull request and push to `main` executes a multi-stage validation pipeline
 
 When presenting to evaluators, click the **"5-MIN JURY DEMO"** button on the top navbar:
 1. **Minute 1: The Heavy Oil Dilemma (`/dashboard`)**
-   * Demonstrate Baghewala well BW-01 state: $47^\circ\text{C}$ native reservoir, $4,200\text{ cP}$ viscosity.
-2. **Minute 2: Real-time Telemetry & Dyno Card (`/live-ops`)**
-   * Inspect surface vs downhole pump dynamometer card.
-   * Observe how fluid pound or delayed valve closure distorts card geometry.
+   * Select a synthetic demo well and inspect its configured state and simulation disclaimer.
+2. **Minute 2: Simulated Telemetry & Dyno Card (`/live-ops`)**
+   * Inspect the generated telemetry and synthetic dynamometer card.
 3. **Minute 3: 180-Day Digital Twin Time Machine (`/digital-twin`)**
-   * Drag the slider from Day 5 (post-steam, $195^\circ\text{C}$, $18\text{ cP}$) to Day 90 ($65^\circ\text{C}$, $750\text{ cP}$).
-   * Watch thermal dissipation curve and increasing Couette shear drag.
+   * Select a cycle day and inspect the simplified temperature and viscosity projection.
 4. **Minute 4: Rod Floating Risk & Explainable AI (`/failures`)**
-   * Demonstrate the deterministic rod floating indicator triggering as sinking velocity is outpaced.
-   * Inspect SHAP waterfall plot attributing 62% of risk to high oil viscosity.
+   * Inspect modeled risk estimates and the synthetic operating state.
+   * Inspect the heuristic risk contribution display; it is not SHAP attribution.
 5. **Minute 5: Pareto Optimization & Agentic Copilot (`/pareto`)**
-   * Generate optimal operating points: SPM reduced from 6.0 to 4.2, stroke length adjusted, saving power and eliminating rod floating while achieving $+18.4\%$ net oil yield.
-   * Ask the Copilot: *"Why is well BW-01 at risk of rod floating on Day 75?"* to demonstrate grounded AI reasoning.
+   * Run the finite-grid search on demand and review its synthetic candidate trade-offs; no setpoint is dispatched.
+   * Open the Evidence Copilot to retrieve registered measurements and operational records through read-only MCP tools. Configure an OpenAI-compatible provider before demonstrating LLM synthesis; otherwise the agent deliberately reports that it is unavailable.
 
 ---
 
 ## 🛡️ Scientific Data Honesty & Source Attribution
-To maintain complete scientific integrity:
-* **Tier A (Verified Ground Truth):** Calibrated using published peer-reviewed SPE literature on Baghewala Field (SPE-39534, SPE-101168) and API RP 11L specifications.
-* **Tier B (Physics Simulator):** Generated by our first-principles differential equation solver calibrated to Baghewala reservoir parameters.
-* **Tier C (Operational Telemetry):** Built-in pluggable interface for SCADA/OPC-UA field integration.
-* *All sample demonstration datasets are synthetic and explicitly tagged as `SIMULATED / CALIBRATED - NOT PROPRIETARY FIELD DATA`.*
+Current demo telemetry and ML training/evaluation records are synthetic. The repository has no field-data ingestion adapter or validated field dataset. Physics equations are simplified project models and need independent engineering review before operational use.
 
 ---
 

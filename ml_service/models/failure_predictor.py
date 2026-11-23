@@ -7,7 +7,7 @@ Predicts probability of:
 - Parted Rod Failure (Fatigue break)
 - Pump Unseating (Hydraulic thrust displacement)
 
-Includes SHAP-equivalent feature attribution and risk classification.
+Includes heuristic feature contribution scores and risk classification.
 """
 
 import math
@@ -26,7 +26,7 @@ class FailurePredictor:
     """
     Multi-hazard equipment failure intelligence model.
     """
-    def __init__(self, version: str = "v1.4.0"):
+    def __init__(self, version: str = "unvalidated-synthetic-v1"):
         self.version = version
         self.srp_model = SRPModel()
         self.visc_model = ViscosityModel()
@@ -42,9 +42,9 @@ class FailurePredictor:
                 self.pr_classifier = joblib.load(saved_pr)
                 self.model_status = "TRAINED (Pre-trained RandomForest + GradientBoosting)"
             except Exception:
-                self.model_status = "PHYSICS_CALIBRATED (API RP 11L + Couette Shear)"
+                self.model_status = "HEURISTIC_FALLBACK (unvalidated physics equations and thresholds)"
         else:
-            self.model_status = "PHYSICS_CALIBRATED (API RP 11L + Couette Shear)"
+            self.model_status = "HEURISTIC_FALLBACK (unvalidated physics equations and thresholds)"
 
     def predict_failure_risks(self, stroke_length_m: float, spm: float, temp_c: float,
                               pressure_bar: float = 55.0, days_in_production: int = 45) -> Dict[str, Any]:
@@ -102,7 +102,7 @@ class FailurePredictor:
                 return "HIGH"
             return "CRITICAL"
 
-        # Feature Attribution (SHAP-equivalent relative contributions)
+        # These normalized input weights are explanatory heuristics, not SHAP values.
         # Why is the risk elevated?
         # Contributions: Viscosity (cooling), SPM (speed), Stroke, Pressure
         w_visc = max(0.1, (viscosity_cp / 3000.0))
@@ -149,7 +149,8 @@ class FailurePredictor:
                 "viscous_drag_lbf": srp_perf["viscous_drag_lbf"],
                 "net_downstroke_force_lbs": srp_perf["net_downstroke_force_lbs"]
             },
-            "feature_attribution_shap": feature_importance,
+            "feature_contributions": feature_importance,
+            "contribution_method": "Normalized heuristic weights; not SHAP",
             "proactive_action_recommended": rod_float_risk > 0.45 or parted_rod_risk > 0.35,
             "recommended_action": "Reduce VFD frequency / SPM by 1.5 - 2.5 to restore positive downstroke rod sinking margin" if rod_float_risk > 0.45 else "Operating within safe mechanical envelope"
         }

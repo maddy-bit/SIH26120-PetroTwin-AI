@@ -1,4 +1,6 @@
 # SIH 2026 — Problem Understanding: SIH26120
+
+> This document contains the project's problem framing and proposal context. It is not evidence that the described data access, calibration, monitoring, recommendation, or control features exist. For current implementation status, see [the architecture audit](architecture-audit.md).
 ## Digital Twin for Well-to-Surface Optimization of Cyclic Steam Stimulation (CSS) and Sucker Rod Pump (SRP) Operations for Heavy Oil Wells of Baghewala Field
 
 ---

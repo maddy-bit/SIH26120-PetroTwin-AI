@@ -11,7 +11,7 @@ export const FailureIntelligenceView: React.FC<FailureProps> = ({ failureData })
     return <div style={{ padding: '40px', color: '#52525b', fontWeight: 600 }}>Loading failure intelligence...</div>;
   }
 
-  const { risks, feature_attribution_shap, overall_health_score, recommended_action } = failureData;
+  const { risks, feature_contributions, overall_health_score, recommended_action } = failureData;
 
   const getBadgeClass = (lvl: string) => {
     switch (lvl) {
@@ -29,10 +29,10 @@ export const FailureIntelligenceView: React.FC<FailureProps> = ({ failureData })
         <div>
           <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#09090b', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ShieldAlert size={20} color="#dc2626" />
-            <span>CALIBRATED EQUIPMENT FAILURE INTELLIGENCE & SHAP ATTRIBUTION</span>
+            <span>MODEL-BASED EQUIPMENT FAILURE RISK & HEURISTIC FACTORS</span>
           </div>
-          <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 500 }}>
-            Multi-hazard predictive survival analysis: Rod Floating, Impact Loading, Parted Rods, and Pump Unseating
+        <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 500 }}>
+            Synthetic demo risk estimates: rod floating, impact loading, parted rods, and pump unseating
           </div>
         </div>
 
@@ -70,7 +70,7 @@ export const FailureIntelligenceView: React.FC<FailureProps> = ({ failureData })
             {(risks.impact_loading.probability * 100).toFixed(1)}%
           </div>
           <div style={{ fontSize: '0.72rem', color: '#52525b', lineHeight: '1.45', fontWeight: 500 }}>
-            Slack carrier bridle catching delayed rod string; induces sonic shock waves at ~5,000 m/s.
+            Heuristic interpretation of the simulated rod-load and rod-floating risk outputs; no acoustic measurement is available.
           </div>
         </div>
 
@@ -103,17 +103,17 @@ export const FailureIntelligenceView: React.FC<FailureProps> = ({ failureData })
         </div>
       </div>
 
-      {/* SHAP Feature Attribution Waterfall & Action */}
+      {/* Heuristic feature contributions and action */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '20px' }}>
-        {/* SHAP Feature Attribution */}
+        {/* Heuristic contribution display */}
         <div className="glass-panel" style={{ padding: '22px' }}>
           <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#09090b', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
             <BarChart3 size={18} color="#2563eb" />
-            <span>EXPLAINABLE AI: SHAP FAILURE CONTRIBUTION BREAKDOWN</span>
+            <span>HEURISTIC RISK CONTRIBUTION SCORES (NOT SHAP)</span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {feature_attribution_shap.map((feat, idx) => (
+            {feature_contributions.map((feat, idx) => (
               <div key={idx}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', marginBottom: '4px', fontWeight: 600 }}>
                   <span style={{ color: '#09090b' }}>{feat.feature}</span>
@@ -149,9 +149,11 @@ export const FailureIntelligenceView: React.FC<FailureProps> = ({ failureData })
             <span style={{ fontSize: '0.74rem', color: '#71717a', fontWeight: 500 }}>Calibrated via Gibbs Wave Dynamics</span>
             <button
               className="neo-btn neo-btn-primary"
+              disabled
+              title="Operational setpoint dispatch is not implemented"
               style={{ fontSize: '0.78rem' }}
             >
-              APPLY SPEED REDUCTION
+              DISPATCH UNAVAILABLE — REVIEW ONLY
             </button>
           </div>
         </div>

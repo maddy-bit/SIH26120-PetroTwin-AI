@@ -34,10 +34,8 @@ Every candidate solution $\mathbf{u}$ must pass strict physical, mechanical, and
 
 ---
 
-### 3. Optimization Algorithms
-* **Level 1 (Exploration):** Latin Hypercube Sampling (LHS) over the feasible operating hypercube.
-* **Level 2 (Pareto Frontier Discovery):** Non-dominated Sorting Genetic Algorithm (NSGA-II) yielding a 2D/3D non-dominated Pareto front.
-* **Level 3 (Local Refinement):** Sequential Least Squares Programming (SLSQP) with normalized weighted objective scalarization:
+### 3. Current Implementation
+The checked-in implementation evaluates a finite grid of steam mass, soak duration, stroke, and SPM values. It removes candidates that fail its coded constraints, uses a weighted scalar score to choose one recommendation, and filters feasible candidates for nondominance across production, SOR, energy, and modeled risk. It does not implement LHS, NSGA-II, or SLSQP. Some constraints described here are not currently evaluated by the Python optimizer; see `docs/architecture-audit.md`.
 $$\min_{\mathbf{u}} \sum_{i=1}^4 w_i \cdot \frac{f_i(\mathbf{u}) - f_i^{\min}}{f_i^{\max} - f_i^{\min}} + \lambda_{\text{pen}} \cdot \sum_j \max(0, g_j(\mathbf{u}))^2$$
 
 ---
@@ -48,3 +46,12 @@ When an operator selects an AI-recommended operating plan from the Pareto front,
 * **Sacrifices:** e.g., $+0.4$ increase in SOR.
 * **Safety Margin:** $+420 \text{ lbs}$ rod downstroke margin; $0\%$ rod-floating risk.
 * **Rejected Alternatives:** Explains why higher-production plans were rejected (e.g., *"Plan X was discarded because peak horsehead speed of 1.15 m/s exceeds cold fluid settling speed of 0.82 m/s, triggering rod float and parted rod risk"*).
+
+
+### 5. Explicit CSS–SRP coupling and execution boundary
+
+Each candidate now calls the same `CoupledCssSrpModel` used by scenario evaluation. The trace passes the steam-mass/soak thermal estimate into production-phase cooling, the resulting production temperature into the viscosity relationship, and the viscosity into SRP load/drag/floating-risk calculations. The scenario API and optimizer response expose the model ID, intermediate stage inputs/outputs, and a representative candidate trace.
+
+The coupling status is always `SIMULATION_ONLY`, `field_eligible=false`, and `NOT_CALIBRATED_ON_FIELD_DATA`. It composes the repository's simplified empirical models; it is not a fully coupled reservoir/wellbore/rod-string simulator. No field recommendation or operating setpoint can be inferred from this trace.
+
+The optimizer remains a finite grid with weighted ranking and nondominated filtering. It checks only the constraints implemented in code. Fracture pressure, gearbox torque and API allowable stress are not evaluated. The “review only” UI action does not dispatch a setpoint.

@@ -1,0 +1,6 @@
+services:
+  ml-service:
+    environment:
+      PETROTWIN_AUTH_MODE: required
+      PETROTWIN_JWT_SECRET: ${PETROTWIN_JWT_SECRET:?Set PETROTWIN_JWT_SECRET to a random secret of at least 32 bytes}
+      PETROTWIN_TOKEN_TTL_MINUTES: ${PETROTWIN_TOKEN_TTL_MINUTES:-15}

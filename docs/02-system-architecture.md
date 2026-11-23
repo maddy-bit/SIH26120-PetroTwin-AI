@@ -1,92 +1,59 @@
-# PETRO-TWIN AI: System Architecture Specification
-## SIH 2026 — Problem Statement SIH26120
+# System Architecture
 
----
+**Active backend:** FastAPI / Python. **Frontend:** React 19 / TypeScript. **Persistent store:** PostgreSQL in Compose and SQLite in local development. Spring Boot remains legacy/dormant source and is not on the frontend request path.
 
-## 1. High-Level Architectural Vision
-**PETRO-TWIN AI** is architected as an industrial-grade cyber-physical decision support system. It bridges downhole reservoir thermodynamics with surface artificial lift mechanical dynamics via a microservices/modular enterprise layout:
+## Current runtime
 
 ```mermaid
-graph TB
-    subgraph ClientLayer ["Surface & Control Room Interface (React + TypeScript + Vite)"]
-        UI_Dash["Industrial Dashboard & Time Machine"]
-        UI_Twin["3D/2D Discretized Wellbore Digital Twin"]
-        UI_Opt["Joint CSS + SRP Scenario & Pareto Lab"]
-        UI_Agent["AI Copilot (Tool-Calling Agent Interface)"]
-        UI_Dyno["High-Frequency Dynamometer Card Analyzer"]
-    end
-
-    subgraph GatewayLayer ["Real-Time & API Gateway"]
-        WS_GW["WebSocket / STOMP Real-Time Gateway"]
-        REST_GW["REST / OpenAPI Reverse Proxy Gateway"]
-    end
-
-    subgraph ServiceLayer ["Core Business & Orchestration Layer (Spring Boot 3 / Python Core)"]
-        TwinSvc["Digital Twin State Engine"]
-        SimSvc["Physics-Informed Simulation Engine"]
-        OptEngine["Constrained Pareto Optimization Engine"]
-        AgentSvc["Agentic AI Orchestrator & Tool Supervisor"]
-        TelemetrySvc["Telemetry Ingestion & Quality Scorer"]
-        AuditSvc["Compliance & Human-In-The-Loop Audit Service"]
-    end
-
-    subgraph IntelligenceLayer ["Machine Learning & Physics Engine (FastAPI + PyTorch + Scikit-Learn)"]
-        PhysicsPkg["Physics Package (Viscosity, Thermal, SRP, Wellbore)"]
-        ModelProd["Production Forecaster (Physics + Gradient Boosted Residual)"]
-        ModelFail["Failure Intelligence (Rod Floating & Parted Rod Risk)"]
-        ModelAnomaly["Isolation Forest Sensor Anomaly Detector"]
-    end
-
-    subgraph DataStorageLayer ["Enterprise Storage & Event Streams"]
-        PG["PostgreSQL / TimescaleDB (Relational & Hypertables)"]
-        StreamBroker["Telemetry Simulator & MQTT/WebSocket Streamer"]
-        DocRAG["Engineering RAG Knowledge Base"]
-    end
-
-    ClientLayer <--> GatewayLayer
-    GatewayLayer <--> ServiceLayer
-    ServiceLayer <--> IntelligenceLayer
-    ServiceLayer <--> DataStorageLayer
-    IntelligenceLayer <--> DataStorageLayer
+flowchart TD
+  B[Browser: React + AuthGate] -->|HTTP / Nginx same-origin proxy| API[FastAPI]
+  API --> AUTH[Authentication + role checks]
+  API --> ING[Validated field ingestion]
+  API --> R[(Repository)]
+  R <--> DB[(PostgreSQL / SQLite)]
+  API --> PH[Physics services]
+  PH --> COUPLED[CSS → cooling → viscosity → SRP coupling]
+  API --> CAL[Calibration / chronological validation]
+  API --> ML[Measured-data model training + registry]
+  ML --> ART[(Persistent model artifacts)]
+  API --> OPT[Finite-grid optimizer]
+  API --> AR[Evidence-first AgentRuntime]
+  AR --> MCP[MCP client over stdio]
+  MCP --> TOOLS[Read-only PETRO-TWIN MCP tools]
+  TOOLS --> R
+  AR --> LLM[Configured OpenAI-compatible model]
+  OLD[Spring Boot legacy source] -. inactive .-> API
 ```
 
----
+## Connected request paths
 
-## 2. Core Service Responsibilities
+- React calls FastAPI through `frontend/src/services/api.ts`. The AuthGate checks `/health` and validates the signed session through `/api/v1/auth/me` when auth is required.
+- FastAPI is the authority for request validation, role enforcement, domain orchestration and repository transactions.
+- Field ingestion supports CSV/JSON measurements with unit normalization, quality status, source identity, duplicate/rejection handling and provenance. No live historian/SCADA/OPC-UA/MQTT connector is configured.
+- The coupled CSS–SRP simulation explicitly passes CSS heat/soak state to thermal cooling, then viscosity, then SRP mechanics. Scenario and optimizer candidates return the intermediate coupling chain.
+- Calibration currently has a viscosity fit adapter. CSS thermal and SRP parameter fitting remain blocked by data/identifiability gaps.
+- Field ML training consumes only VALID measurements, builds as-of feature vectors and future oil-rate targets, uses chronological train/validation/test splits, compares against a persistence baseline, fingerprints the dataset, hashes artifacts and registers review candidates. Model promotion is explicit and admin-only; synthetic model artifacts remain separate.
+- The industrial investigation agent retrieves evidence from the shared repository via the read-only MCP server, calls a configured LLM, and stores the tool trace.
+- The optimizer remains a finite-grid search with weighted ranking and nondominated filtering. It is a model-based candidate comparison, not a validated multiobjective solver or automated control system.
 
-### 2.1 React Frontend (`/frontend`)
-* Built with **React 19 / Vite / TypeScript / Tailwind CSS / Lucide / Recharts**.
-* Dark industrial control room theme with ultra-high information density and sub-second reactive updates.
-* Interactive **Digital Twin Time Machine** allowing timeline scrubbing across 180 days of thermal decay.
-* Real-time dynamometer card rendering displaying surface vs downhole rod loading.
-* **Scenario Lab** allowing side-by-side comparison of user-modified parameters against AI-recommended Pareto setpoints.
+## Persistence and artifact lifecycle
 
-### 2.2 Python ML & Physics Microservice (`/ml-service`)
-* Exposes high-performance REST APIs via **FastAPI** (`http://localhost:8000`).
-* Endpoints:
-  * `POST /predict/production`: Multi-horizon (t+1, t+7, t+30) production forecast with 95% confidence intervals.
-  * `POST /predict/temperature`: Thermal dissipation curve and wellbore cooling rates.
-  * `POST /predict/viscosity`: Temperature-dependent viscosity and Darcy oil mobility.
-  * `POST /predict/failure`: Calibrated failure risks for rod floating, parted rods, and pump unseating.
-  * `POST /detect/anomaly`: Multi-variate sensor anomaly detection via Isolation Forest.
-  * `POST /simulate/css`: Thermodynamic CSS cycle simulation.
-  * `POST /simulate/srp`: API 11L kinematics, viscous drag, and dynamometer card synthesis.
-  * `POST /optimize`: Constrained multi-objective Pareto optimization (NSGA-II / Scipy SLSQP).
+PostgreSQL is the Compose database; SQLite supports local development and isolated tests. Versioned schema migrations cover well records, measurements, operational data, calibration evidence, authentication sessions/audit, agent runs and model registry. The Compose stack persists PostgreSQL data and measured-data model artifacts in named volumes. Field model artifacts are integrity-checked against the registry SHA-256 before inference/promotion.
 
-### 2.3 Backend Orchestration Service (`/backend`)
-* Orchestrates well entity states, telemetry historical persistence, WebSocket broadcast channels, and Human-in-the-Loop approval workflows.
-* Enforces strict data quality scoring (verifying timestamps, sensor drift, impossible negative loads, and units).
-* Maintains an immutable **Audit Trail** for every AI-generated recommendation.
+## Security
 
-### 2.4 Agentic AI Copilot (`/agent`)
-* Deterministic tool supervisor equipped with 14 domain-specific tools:
-  * `get_well_state`, `get_historical_production`, `get_css_history`, `get_srp_history`, `get_current_telemetry`, `predict_production`, `predict_failure`, `predict_temperature`, `simulate_css`, `simulate_srp`, `run_scenario`, `optimize_operations`, `check_constraints`, `get_model_explanation`.
-* Operates under strict guardrails: the LLM plans and calls deterministic calculation tools; it NEVER fabricates numerical constants or bypasses mechanical limits.
+Local development may explicitly use `PETROTWIN_AUTH_MODE=disabled`. The production Compose overlay sets `PETROTWIN_AUTH_MODE=required` and refuses to start without `PETROTWIN_JWT_SECRET` of at least 32 bytes. Passwords are scrypt-hashed; JWTs are signed and backed by revocable database sessions. Roles are viewer, engineer, operator and admin. All application API paths are protected in required mode; health and login stay public. The admin CLI creates the first administrator without a default password.
 
----
+The current security boundary is application-level authentication and authorization. HTTPS termination, edge rate limiting, CSP, external identity provider, secret-manager integration and independent security testing still require deployment-specific configuration before public exposure.
 
-## 3. Real-Time Telemetry Flow & Data Honesty
-Because live field access to Oil India's proprietary SCADA stream is legally restricted during hackathon development, the system features a **Correlated Physics-Based Telemetry Simulator**:
-* Synthesizes thermodynamically correlated streams (Steam $\uparrow \implies$ Temp $\uparrow \implies$ Viscosity $\downarrow \implies$ Prod $\uparrow \implies$ Time $\implies$ Temp $\downarrow \implies$ Viscosity $\uparrow \implies$ Rod Drag $\uparrow \implies$ Rod Float Risk $\uparrow$).
-* UI watermarks strictly state: `DATA MODE: SIMULATION / SYNTHETIC — NOT OIL INDIA FIELD DATA`.
-* Ready-to-plug adapters (`CSVDataAdapter`, `MQTTDataAdapter`, `PostgresDataAdapter`, `RESTDataAdapter`) allow zero-code-change ingestion once field access is granted.
+## Simulation versus field evidence
+
+- Built-in demo wells, simulated telemetry, legacy synthetic model artifacts, and simulation candidates are not field evidence.
+- Field mode does not seed demo wells. Missing/stale/invalid measurements must produce unavailable results; they are not replaced with generated telemetry.
+- The coupled CSS–SRP model reports `SIMULATION_ONLY`, `field_eligible=false`, and `NOT_CALIBRATED_ON_FIELD_DATA`.
+- ML candidates require measured VALID observations and explicit promotion, but chronological holdout performance is not independent field validation.
+- No production deployment, field calibration or field validation is claimed until actual operator data and domain review are supplied.
+
+## Spring Boot
+
+The Java source and Flyway scripts remain in the repository as legacy code. They are not part of Compose's active request path. FastAPI is the single service boundary to avoid two backends with different persistence/security implementations.

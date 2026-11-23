@@ -91,14 +91,16 @@ class TelemetrySimulator:
             }
         }
 
-    def generate_current_telemetry(self, well_id: str = "BW-DEMO-001") -> Dict[str, Any]:
+    def generate_current_telemetry(self, well_id: str = "BW-DEMO-001", day_override: int = None) -> Dict[str, Any]:
         """
         Synthesizes a realistic, thermodynamically correlated telemetry frame.
         """
-        w = self.wells_state.get(well_id, self.wells_state["BW-DEMO-001"])
+        if well_id not in self.wells_state:
+            raise KeyError(f"Unknown well_id: {well_id}")
+        w = self.wells_state[well_id]
         
         # 1. Thermal state at current production day
-        day = w["days_in_production"]
+        day = w["days_in_production"] if day_override is None else day_override
         peak_t = w["peak_temperature_c"]
         res_temp_c = self.thermal_model.predict_temperature_at_day(float(day), peak_t)
         

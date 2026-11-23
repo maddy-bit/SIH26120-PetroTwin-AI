@@ -1,20 +1,32 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, Tooltip, CartesianGrid, ZAxis } from 'recharts';
 import { Sparkles, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { OptimizationResult, ParetoPoint } from '../types/petro';
 
 interface ParetoProps {
   optimizationData: OptimizationResult | null;
+  onRunOptimization: () => void;
+  isRunning: boolean;
   onApplyPlan: (plan: any) => void;
 }
 
-export const ParetoOptimizationView: React.FC<ParetoProps> = ({ optimizationData, onApplyPlan }) => {
+export const ParetoOptimizationView: React.FC<ParetoProps> = ({ optimizationData, onRunOptimization, isRunning, onApplyPlan }) => {
+  const pareto_frontier = optimizationData?.pareto_frontier ?? [];
+  const rejected_alternatives_sample = optimizationData?.rejected_alternatives_sample ?? [];
+  const [selectedPoint, setSelectedPoint] = useState<ParetoPoint | null>(null);
+  useEffect(() => setSelectedPoint(pareto_frontier[0] || null), [pareto_frontier]);
+
   if (!optimizationData) {
-    return <div style={{ padding: '40px', color: '#52525b', fontWeight: 600 }}>Loading Pareto optimizer results...</div>;
+    return <div style={{ padding: '40px', color: '#52525b', fontWeight: 600 }}><div role="status">Optimization has not been run for this selection.</div><button disabled={isRunning} onClick={onRunOptimization} className="neo-btn neo-btn-primary" style={{ marginTop: 14 }}>{isRunning ? 'Evaluating…' : 'Run finite-grid optimization'}</button></div>;
   }
 
-  const { pareto_frontier, rejected_alternatives_sample } = optimizationData;
-  const [selectedPoint, setSelectedPoint] = useState<ParetoPoint | null>(pareto_frontier[2] || pareto_frontier[0]);
+  if (optimizationData.status !== 'GRID_SEARCH_COMPLETED' || !optimizationData.recommended_plan) {
+    return <div className="glass-panel" style={{ margin: 24, padding: 24 }}>
+      <div role="alert" style={{ color: '#991b1b', fontWeight: 800 }}>No feasible candidate was found.</div>
+      <p style={{ color: '#52525b', fontSize: '.82rem' }}>{optimizationData.decision_support_disclaimer}</p>
+      <button disabled={isRunning} onClick={onRunOptimization} className="neo-btn neo-btn-primary">{isRunning ? 'Evaluating…' : 'Re-run optimization'}</button>
+    </div>;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px 20px' }}>
@@ -23,21 +35,21 @@ export const ParetoOptimizationView: React.FC<ParetoProps> = ({ optimizationData
         <div>
           <div style={{ fontSize: '1.05rem', fontWeight: 800, color: '#09090b', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Sparkles size={20} color="#2563eb" />
-            <span>CONSTRAINED MULTI-OBJECTIVE PARETO OPTIMIZER</span>
+            <span>FINITE-GRID JOINT OPTIMIZER</span>
           </div>
           <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 500 }}>
-            NSGA-II Non-Dominated Frontier: Oil Production vs Steam-to-Oil Ratio vs Mechanical Failure Hazard
+            Finite grid search; nondominated candidates by production, SOR, energy, and modeled risk
           </div>
         </div>
-        <span className="tech-badge badge-green">OPTIMIZATION CONVERGED (SLSQP)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><span className="tech-badge badge-green">GRID SEARCH COMPLETED</span><button disabled={isRunning} onClick={onRunOptimization} className="neo-btn neo-btn-primary">{isRunning ? 'Evaluating…' : 'Re-run optimization'}</button></div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: '20px' }}>
-        {/* Pareto Frontier 2D Scatter Chart */}
+        {/* Nondominated candidate comparison */}
         <div className="glass-panel" style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div>
-              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#09090b' }}>Pareto Frontier: Production (bpd) vs Cumulative SOR</div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#09090b' }}>Nondominated candidates: production vs SOR</div>
               <div style={{ fontSize: '0.72rem', color: '#52525b' }}>Click any candidate point to inspect engineering trade-offs</div>
             </div>
           </div>
@@ -133,11 +145,11 @@ export const ParetoOptimizationView: React.FC<ParetoProps> = ({ optimizationData
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.76rem', color: '#3f3f46' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                   <ArrowUpRight size={16} color="#15803d" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div><strong style={{ color: '#09090b' }}>What do I gain?</strong> +18.4% clean oil output ({selectedPoint.production_bpd} bpd) and safe rod downstroke sinking margin.</div>
+                  <div><strong style={{ color: '#09090b' }}>Candidate estimate:</strong> {selectedPoint.production_bpd} bpd at modeled rod-floating risk {(selectedPoint.failure_risk * 100).toFixed(1)}%. Synthetic model output, not a verified production gain.</div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
                   <ArrowDownRight size={16} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  <div><strong style={{ color: '#09090b' }}>What do I sacrifice?</strong> Operates at 5.5 SPM rather than maximum theoretical displacement to completely eliminate rod-float risk.</div>
+                  <div><strong style={{ color: '#09090b' }}>Trade-off:</strong> {selectedPoint.spm} SPM, {selectedPoint.stroke_m} m stroke, and {selectedPoint.steam_tons} tons steam under the current simplified candidate model. This does not establish zero mechanical risk.</div>
                 </div>
               </div>
 
@@ -152,8 +164,16 @@ export const ParetoOptimizationView: React.FC<ParetoProps> = ({ optimizationData
                   justifyContent: 'center'
                 }}
               >
-                DISPATCH SETPOINT TO VFD & CSS SCHEDULE
+                REVIEW ONLY — NO SETPOINT DISPATCH
               </button>
+              <div style={{ marginTop: 12, padding: 10, background: '#fffbeb', border: '1px solid #d97706', fontSize: '.72rem', color: '#52525b' }}>
+                <strong>Coupled CSS–SRP model: simulation only.</strong><br />
+                {optimizationData.physics_coupling?.model_id ?? 'Coupled model metadata unavailable'} · {optimizationData.physics_coupling?.calibration_status ?? 'NOT FIELD CALIBRATED'} · Field eligible: {optimizationData.physics_coupling?.field_eligible ? 'Yes' : 'No'}.
+                {optimizationData.physics_coupling?.representative_chain?.map((stage) => stage.stage.replaceAll('_', ' ')).join(' → ')}
+              </div>
+              <p style={{ margin: '10px 0 0', fontSize: '.72rem', color: '#52525b' }}>
+                Candidate evaluations use a fixed {optimizationData.recommended_plan.css.production_horizon_days}-day production horizon for cycle-oil and SOR estimates. Injection pressure and production cutoff timing are not optimized.
+              </p>
             </div>
           )}
 

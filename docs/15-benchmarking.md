@@ -1,24 +1,52 @@
-# PETRO-TWIN AI: Benchmarking & Ablation Study
-## Quantitative Comparison Across Modeling Strategies (Simulation Benchmark)
+# Benchmarking and Evaluation Protocol
 
----
+## Current evidence status
 
-### 1. Modeling Strategy Comparison
-To prove the rigorous contribution of each architectural component, PETRO-TWIN AI benchmarked five modeling configurations on a standardized 180-day Baghewala CSS + SRP simulation scenario:
+No reproducible field benchmark has been completed for PETRO-TWIN AI. No field-derived forecast MAE/RMSE, thermal prediction error, rod-floating classification accuracy, net-oil uplift, SOR reduction, unsafe recommendation rate or operational time saving is claimed.
 
-| Modeling Strategy | Production Forecast MAE (bbl/d) | Thermal Forecast RMSE (°C) | Rod-Float Detection Accuracy | Unsafe Setpoint Proposing Rate | Optimization Efficiency Score |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Strategy 1: Historical Fixed Practice** | N/A (Reactive) | N/A | 0% (Blind) | 48.2% | Baseline |
-| **Strategy 2: Pure ML (XGBoost/LSTM)** | 14.8 bbl/d | 8.4 °C | 64.2% | 22.5% (Extrapolates poorly) | Moderate |
-| **Strategy 3: Pure Physics (Analytical)** | 12.1 bbl/d | 5.2 °C | 88.0% | 4.8% (Idealized) | Good |
-| **Strategy 4: Hybrid Physics + ML (Ours)** | **4.6 bbl/d** | **2.1 °C** | **96.8%** | **0.0%** (Safety clamped) | Superior |
-| **Strategy 5: Hybrid + Pareto Optimizer** | **4.2 bbl/d** | **2.0 °C** | **98.4%** | **0.0% (Zero Violations)** | **Optimal (+18.4% Net Oil, -22% SOR)** |
+The repository contains synthetic model artifacts, simulation scenarios and controlled unit-test fixtures. They are useful for software regression and sensitivity checks; they are not independent field evidence. Any performance figures in older slides/notes without a versioned dataset, split manifest, model hash, configuration, run trace and evaluation script must be treated as **unverified and excluded from research claims**.
 
-*Disclaimer: Results represent a literature-calibrated simulation benchmark. Real field performance depends on reservoir heterogeneity.*
+## Separate evaluation cohorts
 
----
+Never pool these cohorts:
 
-### 2. Ablation Findings
-1. **The Necessity of Physics Bounds:** Pure machine learning models occasionally recommended increasing SPM to 12.0 when temperature dropped, because in training data high SPM correlated with high displacement. The pure ML model was blind to downstroke viscous drag and rod floating, causing 22.5% unsafe recommendations.
-2. **The Necessity of ML Residuals:** Pure physics models overestimated production by 12% during late cycles due to ignoring unmodeled asphaltene deposition in the tubing. The hybrid approach eliminated this bias.
-3. **The Power of Joint Optimization:** Decoupled optimization resulted in sub-optimal steam injection schedules. Joint CSS + SRP optimization delivered an estimated **18.4% production improvement** while reducing the Steam-Oil Ratio (SOR) by **22.1%**.
+1. **Software fixtures:** deterministic input/output cases for API, physics, calibration, ML lifecycle, authentication and MCP protocol behavior.
+2. **Synthetic simulation:** generated CSS/SRP scenarios used to test monotonicity, constraints, scenario sensitivity and optimizer behavior.
+3. **Measured single-well development:** permissioned VALID observations used for leakage-safe model fitting and chronological holdout.
+4. **Independent field evaluation:** held-out wells/cycles or later periods, approved by a domain owner and not used for feature design, model tuning or threshold selection.
+5. **Industrial agent benchmark:** a fixed and versioned task suite with persisted inputs, tool traces, expected evidence and independent grading.
+
+A result from one cohort must not be reported as a result from another.
+
+## Model metrics and baselines
+
+For production forecasting, report at minimum MAE, RMSE, bias, sample count, prediction horizon, well/cycle coverage and comparison against a persistence baseline. Use chronological splitting with target-time purging. Report both aggregate and per-well results; include units and confidence intervals only when their statistical assumptions are justified.
+
+For thermal and viscosity models, report target definitions, sensor location, timestamp alignment, unit handling, calibration/validation periods, MAE/RMSE/bias and residual diagnostics. Do not use one temperature sensor to imply a reservoir-wide thermal field.
+
+For SRP/failure analytics, define the event label, event adjudication source, class prevalence, lead time, precision, recall, F1, PR-AUC, calibration and false-alarm burden. A heuristic risk score is not a calibrated failure probability.
+
+For optimization, compare feasible alternatives using the same validated operating envelope and model versions. Report constraint coverage, sensitivity, Pareto trade-offs and reproducibility; do not claim a global optimum or production improvement without a prospective/retrospective field study.
+
+For an industrial investigation agent, evaluate task completion, evidence correctness, tool selection/call correctness, unsupported-claim rate, abstention when inputs are missing, trace reproducibility, latency/cost and human correction effort. Keep synthetic tasks and real operating cases separate. Human expert grading criteria and disagreements must be recorded.
+
+## AssetOpsBench alignment
+
+The PETRO-TWIN MCP-backed evidence agent provides read-only tools and persisted tool traces that can support an AssetOpsBench-style adapter. This repository has not yet run the official IBM AssetOpsBench task suite and has no official AOB score. An adapter, frozen scenario manifest, expected outcomes, evaluator, repeated runs and human-correction rubric remain necessary before claiming AOB evaluation.
+
+## Reproducibility manifest
+
+Every benchmark release should record:
+- git commit and clean/dirty working-tree state;
+- dataset ID, source/license/permissions, schema, quality policy and SHA-256 fingerprint;
+- excluded record counts and reasons;
+- well/cycle/group and time split manifest, including purge boundaries;
+- model artifact and physics configuration hashes;
+- optimizer constraints/objective weights or agent system prompt/tool schema/provider/model;
+- random seeds and dependency/container versions;
+- complete run outputs, logs and tool traces;
+- metric implementation/version, denominators, uncertainty method and evaluator identity.
+
+## Current conclusion
+
+The project has a software verification suite and controlled simulation checks. It does **not** yet have verified real-world performance numbers. A field dataset, independent engineering validation and a reproducible evaluator are prerequisites for quantitative performance claims.

@@ -1,23 +1,27 @@
 import React from 'react';
 import { Activity, Cpu, Sparkles, Play, Database } from 'lucide-react';
-import { WellId } from '../types/petro';
+import { WellId, WellSummary } from '../types/petro';
 
 interface NavbarProps {
   selectedWell: WellId;
   onSelectWell: (id: WellId) => void;
+  wells: WellSummary[];
   activeTab: string;
   onSelectTab: (tab: string) => void;
   onOpenJuryDemo: () => void;
   onOpenCopilot: () => void;
+  dataMode: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   selectedWell,
   onSelectWell,
+  wells,
   activeTab,
   onSelectTab,
   onOpenJuryDemo,
-  onOpenCopilot
+  onOpenCopilot,
+  dataMode
 }) => {
   const tabs = [
     { id: 'dashboard', label: 'Overview' },
@@ -27,7 +31,10 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'srp-optimizer', label: 'SRP Optimizer' },
     { id: 'failures', label: 'Failure Intelligence' },
     { id: 'scenario-lab', label: 'Scenario Lab' },
-    { id: 'pareto', label: 'Pareto Optimization' }
+    { id: 'pareto', label: 'Optimizer Review' },
+    { id: 'saved-runs', label: 'Saved Runs' },
+    { id: 'data-workspace', label: 'Field Data' },
+    { id: 'field-models', label: 'Field Models' }
   ];
 
   return (
@@ -80,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="tech-badge badge-sim" style={{ padding: '4px 10px', fontSize: '0.72rem' }}>
             <Database size={12} />
-            <span>DATA MODE: SIMULATION</span>
+            <span>DATA MODE: {dataMode || 'CONNECTING'}</span>
           </div>
 
           {/* Live Status */}
@@ -95,7 +102,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             boxShadow: '1px 1px 0px #18181b'
           }}>
             <span className="live-indicator"></span>
-            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: '#15803d', fontWeight: 700 }}>LIVE STREAM</span>
+            <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-mono)', color: dataMode === 'SIMULATION' ? '#a16207' : '#52525b', fontWeight: 700 }}>{dataMode || 'CONNECTING'}</span>
           </div>
 
           {/* Well Selector */}
@@ -103,6 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span style={{ fontSize: '0.75rem', color: '#52525b', fontWeight: 700 }}>ACTIVE WELL:</span>
             <select
               value={selectedWell}
+              disabled={wells.length === 0}
               onChange={(e) => onSelectWell(e.target.value as WellId)}
               style={{
                 background: '#ffffff',
@@ -118,9 +126,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 cursor: 'pointer'
               }}
             >
-              <option value="BW-DEMO-001">BW-DEMO-001 (Late Cycle Cooling)</option>
-              <option value="BW-DEMO-002">BW-DEMO-002 (Peak Thermal Flush)</option>
-              <option value="BW-DEMO-003">BW-DEMO-003 (Critical Rod Float Alert)</option>
+              {wells.length === 0 && <option value="">No wells registered</option>}
+              {wells.map((well) => <option key={well.well_id} value={well.well_id}>{well.well_id} — {well.name}</option>)}
             </select>
           </div>
 

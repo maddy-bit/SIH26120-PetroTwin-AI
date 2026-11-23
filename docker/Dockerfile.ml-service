@@ -10,15 +10,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ml_service/requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY mcp_server/requirements.txt ./mcp-server-requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt -r mcp-server-requirements.txt
 
 COPY physics/ ./physics/
 COPY config/ ./config/
-COPY data/ ./data/
+COPY data/sources/ ./data/sources/
 COPY agent/ ./agent/
+COPY mcp_server/ ./mcp_server/
 COPY ml_service/ ./ml_service/
+COPY tests/ ./tests/
+COPY scripts/ ./scripts/
 
-WORKDIR /app/ml_service
+WORKDIR /app
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "ml_service.main:app", "--host", "0.0.0.0", "--port", "8000"]

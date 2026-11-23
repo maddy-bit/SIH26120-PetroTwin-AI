@@ -3,15 +3,18 @@ import {
   Thermometer, Droplets, Zap, AlertTriangle, Flame, ArrowUpRight, ArrowDownRight, Activity
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { TelemetryFrame } from '../types/petro';
+import { ProductionForecast, TelemetryFrame } from '../types/petro';
 
 interface DashboardProps {
   telemetry: TelemetryFrame | null;
   history: any[];
   onNavigateTab: (tab: string) => void;
+  forecast: ProductionForecast | null;
+  onRequestForecast: () => void;
+  forecastLoading: boolean;
 }
 
-export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history, onNavigateTab }) => {
+export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history, onNavigateTab, forecast, onRequestForecast, forecastLoading }) => {
   if (!telemetry) {
     return <div style={{ padding: '40px', color: '#52525b', fontWeight: 600 }}>Loading telemetry stream...</div>;
   }
@@ -21,6 +24,19 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '24px 20px' }}>
+      <section className="glass-panel" style={{ padding: '18px 20px' }} aria-label="Production forecast">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+          <div>
+            <div style={{ fontWeight: 800 }}>Production forecast</div>
+            <div style={{ color: '#52525b', fontSize: '.76rem', marginTop: 4 }}>Synthetic model estimate; heuristic ranges are not calibrated prediction intervals.</div>
+          </div>
+          <button onClick={onRequestForecast} disabled={forecastLoading} className="neo-btn neo-btn-primary">{forecastLoading ? 'Calculating…' : 'Request forecast'}</button>
+        </div>
+        {forecast && <div style={{ marginTop: 14, display: 'flex', flexWrap: 'wrap', gap: 16 }}>
+          {Object.values(forecast.forecast_horizons).map((horizon) => <div key={horizon.day}><strong>Day +{horizon.day}:</strong> {horizon.prediction_bpd} bpd (heuristic range {horizon.lower_estimate_bpd}–{horizon.upper_estimate_bpd})</div>)}
+          <div style={{ width: '100%', color: '#52525b', fontSize: '.72rem' }}>Source: {forecast.training_dataset}; status: {forecast.confidence}.</div>
+        </div>}
+      </section>
       {/* Top Banner Alert (If Rod Floating Threat Active) */}
       {isRodFloating && (
         <div style={{
@@ -176,11 +192,11 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history
         <div className="glass-panel" style={{ padding: '14px 18px', borderLeft: '3px solid #2563eb' }}>
           <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 700 }}>RESERVOIR HEALTH</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>Formation Stable</span>
-            <span className="tech-badge badge-green">94%</span>
+            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>Pressure reading</span>
+            <span className="tech-badge badge-sim">SIMULATED</span>
           </div>
           <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
-            Pressure: {pressure_state.bottomhole_pressure_bar} bar (Native 55)
+            Bottomhole: {pressure_state.bottomhole_pressure_bar} bar
           </div>
         </div>
 
@@ -192,7 +208,7 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history
             <span className="tech-badge badge-cyan">{production_state.pump_volumetric_efficiency_pct}%</span>
           </div>
           <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
-            Seated at 900m depth • Plunger 2.25"
+            Simulator estimate; pump geometry is not configured per well.
           </div>
         </div>
 
@@ -201,14 +217,14 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history
           <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 700 }}>ROD STRING HEALTH</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
             <span style={{ fontSize: '1.05rem', fontWeight: 700, color: isRodFloating ? '#dc2626' : '#09090b' }}>
-              {isRodFloating ? 'Floats / Shock' : 'Goodman Normal'}
+              {isRodFloating ? 'Elevated float risk' : 'Float risk below alert threshold'}
             </span>
             <span className={`tech-badge ${isRodFloating ? 'badge-red' : 'badge-amber'}`}>
               Risk: {Math.round(srp_operating_state.rod_floating_risk * 100)}%
             </span>
           </div>
           <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
-            API Grade D Steel • Sinker Bar OK
+            Rod stress and fatigue checks are not evaluated.
           </div>
         </div>
 
@@ -228,11 +244,11 @@ export const OverviewDashboard: React.FC<DashboardProps> = ({ telemetry, history
         <div className="glass-panel" style={{ padding: '14px 18px', borderLeft: '3px solid #18181b' }}>
           <div style={{ fontSize: '0.74rem', color: '#52525b', fontWeight: 700 }}>DATA QUALITY</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>Signal Integrity</span>
-            <span className="tech-badge badge-green">GOOD (100%)</span>
+            <span style={{ fontSize: '1.05rem', fontWeight: 700, color: '#09090b' }}>Data source</span>
+            <span className="tech-badge badge-sim">SYNTHETIC</span>
           </div>
           <div style={{ fontSize: '0.72rem', color: '#71717a', marginTop: '4px', fontWeight: 500 }}>
-            Monotonic • Range Validated
+            No sensor-quality validation is configured.
           </div>
         </div>
       </div>

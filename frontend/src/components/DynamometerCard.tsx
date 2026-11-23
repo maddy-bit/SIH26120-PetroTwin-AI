@@ -155,7 +155,7 @@ export const DynamometerCard: React.FC<DynoCardProps> = ({ dynoData }) => {
                   </p>
                   <p>
                     The downstroke load has collapsed towards zero because upward Couette viscous shear force exceeds the downward rod weight. 
-                    Slack bridle cables will violently re-engage at the turnaround, propagating destructive tensile shock waves down the steel string.
+                    The displayed card is a synthetic model output. It does not measure cable slack, impact events, or stress-wave propagation.
                   </p>
                 </div>
               ) : (
