@@ -44,7 +44,7 @@ PostgreSQL is the Compose database; SQLite supports local development and isolat
 
 Local development may explicitly use `PETROTWIN_AUTH_MODE=disabled`. The production Compose overlay sets `PETROTWIN_AUTH_MODE=required` and refuses to start without `PETROTWIN_JWT_SECRET` of at least 32 bytes. Passwords are scrypt-hashed; JWTs are signed and backed by revocable database sessions. Roles are viewer, engineer, operator and admin. All application API paths are protected in required mode; health and login stay public. The admin CLI creates the first administrator without a default password.
 
-The current security boundary is application-level authentication and authorization. HTTPS termination, edge rate limiting, CSP, external identity provider, secret-manager integration and independent security testing still require deployment-specific configuration before public exposure.
+The application boundary includes authentication/RBAC; the hardened local Compose edge adds Nginx CSP/security headers and login/API rate limits. Public HTTPS termination/HSTS, trusted ingress, a managed secret store, external identity provider, backups/restore, monitoring and independent security testing still require deployment-specific configuration before public exposure.
 
 ## Simulation versus field evidence
 

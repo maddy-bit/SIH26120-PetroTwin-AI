@@ -66,7 +66,7 @@ The repository initializes versioned schema migrations. Tables cover wells, meas
 
 Local development may use `PETROTWIN_AUTH_MODE=disabled`. The production overlay requires `PETROTWIN_AUTH_MODE=required` and a `PETROTWIN_JWT_SECRET` of at least 32 bytes. Passwords use salted scrypt hashes; access JWTs are HMAC-SHA256 signed and tied to revocable DB sessions. Roles: viewer, engineer, operator and admin. Read access is available to all authenticated roles; field ingestion to operator/admin; physics/calibration analysis to engineer/admin; user management, policy/approval actions and model promotion to admin. First admin is provisioned with `scripts/manage_users.py`; no default credentials exist.
 
-Before public exposure, deployment-specific TLS, edge rate limiting, CSP, secret-manager integration, backup/recovery and independent security testing must be configured. MFA and OIDC/SSO are not implemented.
+The hardened local Compose edge provides Nginx security headers/CSP and login/API rate limits; containers run non-root with read-only root filesystems, dropped capabilities and resource limits. Before public exposure, configure HTTPS/TLS and HSTS, trusted ingress, managed secrets, off-host backup/restore, monitoring and independent security testing. MFA and OIDC/SSO are not implemented.
 
 ## Scope and validation boundary
 

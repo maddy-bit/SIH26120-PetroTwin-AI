@@ -33,7 +33,7 @@ Latest source verification: 80 Python tests passed, 7 Playwright E2E tests passe
 - The official IBM AssetOpsBench benchmark has not been run; no AOB score is claimed.
 - The optimizer is finite-grid search with limited coded constraints. It does not establish a global optimum or validate fracture pressure, gearbox torque or API allowable stress.
 - No SCADA/historian/OPC-UA/MQTT integration or operating control/setpoint dispatch is configured.
-- The local authenticated Compose profile is not a cloud production deployment or security certification. TLS, ingress/rate limits, CSP/XSS hardening, secret-manager configuration, backup/recovery drills, monitoring, MFA/OIDC and independent security review remain.
+- The local authenticated Compose profile is not a cloud production deployment or security certification. Local Nginx CSP/security headers and rate limits are implemented; public TLS/ingress, managed secrets, backup/recovery drills, monitoring, MFA/OIDC and independent security review remain.
 
 ## Evidence required for field acceptance
 

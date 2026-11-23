@@ -28,7 +28,7 @@ FastAPI is the only active application API. Interactive documentation is availab
 | `POST` | `/api/copilot/query` | Keyword-routed deterministic response |
 | `WS` | `/ws/telemetry/{well_id}` | Generated synthetic telemetry stream |
 
-Pydantic request models enforce numeric ranges and reject unknown fields. Unknown well IDs return HTTP 404; invalid request bodies return 422. CORS origins are configured with `CORS_ORIGINS`. When `PETROTWIN_AUTH_MODE=required`, protected HTTP/WebSocket routes require a valid bearer session and role-specific permissions; health and login are public. No operating setpoint dispatch exists. The production Compose override enables authentication but TLS, edge rate limiting, CSP and secret-manager configuration remain deployment responsibilities.
+Pydantic request models enforce numeric ranges and reject unknown fields. Unknown well IDs return HTTP 404; invalid request bodies return 422. CORS origins are configured with `CORS_ORIGINS`. When `PETROTWIN_AUTH_MODE=required`, protected HTTP/WebSocket routes require a valid bearer session and role-specific permissions; health and login are public. The hardened Compose profile adds Nginx CSP/security headers and login/API rate limits, plus non-root/read-only/resource-constrained containers. Public TLS/ingress, managed secrets, off-host backups, monitoring and independent security review remain deployment responsibilities. No operating setpoint dispatch exists.
 
 ## Scenario input semantics
 

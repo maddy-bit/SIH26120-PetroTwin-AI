@@ -264,29 +264,17 @@ SIH26120-PetroTwin-AI/
 
 ## ☁️ Cloud Deployment
 
-Optional deployment configuration exists for Render/Vercel, but is not part of the verified local application workflow.
+Cloud deployment is **not configured or verified**. The former Render blueprint was archived as `render.legacy.yaml` because it exposed the previous API topology without the current required-auth and hardened Compose settings. Do not deploy that archived manifest or the old Render/Vercel quick-start commands.
 
-> 📖 **Full Step-by-Step Instructions:** See [docs/18-cloud-deployment-guide.md](docs/18-cloud-deployment-guide.md) for full configuration details.
-
-### Quick Deployment Summary:
-1. **Render (Backend):**
-   * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
-   * Build Command: `pip install -r requirements.txt` (run from repository root; includes MCP SDK)
-   * Start Command: `uvicorn ml_service.main:app --host 0.0.0.0 --port $PORT`
-2. **Vercel (Frontend):**
-   * Repo: `maddy-bit/SIH26120-PetroTwin-AI`
-   * Root Directory: `frontend`
-   * Environment Variable: `VITE_API_URL=https://<your-render-service>.onrender.com`
-
-These are configuration examples only; this deployment path has not been validated. See [deployment status and prerequisites](docs/18-cloud-deployment-guide.md).
+The currently verified runtime is the authenticated, hardened local Compose profile. Public release still requires a TLS ingress, managed secrets, off-host database/model backups with restore drills, centralized monitoring, and a cloud deployment pipeline. See [the deployment guide](docs/13-deployment.md) and [cloud deployment status](docs/18-cloud-deployment-guide.md).
 
 ---
 
 ## 🔄 Automated CI/CD Pipeline (GitHub Actions)
 
 Every pull request and push to `main` executes a multi-stage validation pipeline:
-1. **Frontend CI:** Node 20 + TypeScript compilation (`tsc -b`) + Vite production build (`dist/` artifact archive).
-2. **ML & Physics CI:** Python 3.12 + test suite + FastAPI health check validation (`TestClient`).
+1. **Frontend CI:** Node 22 + `npm ci`, high-severity dependency audit, TypeScript compilation and Vite production build.
+2. **ML & Physics CI:** Python 3.12 + pinned runtime lock, `pip-audit`, full test suite and FastAPI health validation.
 3. **Container validation:** FastAPI and frontend Dockerfile builds.
 4. Deployment is separate from this CI workflow and must be independently configured and verified.
 

@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { AuthGate } from './components/AuthGate';
 import { Navbar } from './components/Navbar';
-import { OverviewDashboard } from './components/OverviewDashboard';
-import { DigitalTwinView } from './components/DigitalTwinView';
-import { DynamometerCard } from './components/DynamometerCard';
-import { CSSOptimizerView } from './components/CSSOptimizerView';
-import { SRPOptimizerView } from './components/SRPOptimizerView';
-import { FailureIntelligenceView } from './components/FailureIntelligenceView';
-import { ScenarioLabView } from './components/ScenarioLabView';
-import { ParetoOptimizationView } from './components/ParetoOptimizationView';
 import { AICopilotDrawer } from './components/AICopilotDrawer';
 import { JuryDemoModal } from './components/JuryDemoModal';
-import { SavedRunsView } from './components/SavedRunsView';
-import { DataWorkspaceView } from './components/DataWorkspaceView';
-import { FieldModelsView } from './components/FieldModelsView';
+
+const OverviewDashboard = lazy(() => import('./components/OverviewDashboard').then((m) => ({ default: m.OverviewDashboard })));
+const DigitalTwinView = lazy(() => import('./components/DigitalTwinView').then((m) => ({ default: m.DigitalTwinView })));
+const DynamometerCard = lazy(() => import('./components/DynamometerCard').then((m) => ({ default: m.DynamometerCard })));
+const CSSOptimizerView = lazy(() => import('./components/CSSOptimizerView').then((m) => ({ default: m.CSSOptimizerView })));
+const SRPOptimizerView = lazy(() => import('./components/SRPOptimizerView').then((m) => ({ default: m.SRPOptimizerView })));
+const FailureIntelligenceView = lazy(() => import('./components/FailureIntelligenceView').then((m) => ({ default: m.FailureIntelligenceView })));
+const ScenarioLabView = lazy(() => import('./components/ScenarioLabView').then((m) => ({ default: m.ScenarioLabView })));
+const ParetoOptimizationView = lazy(() => import('./components/ParetoOptimizationView').then((m) => ({ default: m.ParetoOptimizationView })));
+const SavedRunsView = lazy(() => import('./components/SavedRunsView').then((m) => ({ default: m.SavedRunsView })));
+const DataWorkspaceView = lazy(() => import('./components/DataWorkspaceView').then((m) => ({ default: m.DataWorkspaceView })));
+const FieldModelsView = lazy(() => import('./components/FieldModelsView').then((m) => ({ default: m.FieldModelsView })));
 
 import { api } from './services/api';
 import {
@@ -179,6 +180,7 @@ function MainApp() {
         </div>
       )}
       <main style={{ flex: 1, maxWidth: '1680px', width: '100%', margin: '0 auto' }}>
+        <Suspense fallback={<section role="status" style={{ margin: 24, padding: 20 }}>Loading workspace…</section>}>
         {activeTab === 'dashboard' && dataMode !== 'SIMULATION' && (
           <section style={{ padding: 24 }}>
             <div className="glass-panel" style={{ padding: 20 }} role="status">
@@ -246,6 +248,7 @@ function MainApp() {
           if (dataMode !== 'SIMULATION') setSelectedWell(well.well_id);
         }} />}
         {activeTab === 'field-models' && <FieldModelsView selectedWell={selectedWell} dataMode={dataMode} />}
+        </Suspense>
       </main>
 
       {/* AI Copilot Side Drawer */}

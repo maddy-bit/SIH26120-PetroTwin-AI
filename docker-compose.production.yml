@@ -1,6 +1,73 @@
+# Hardened overlay for a production-oriented Compose deployment.
+# Configure unique secrets, trusted CORS origins, TLS termination and backups before public exposure.
 services:
+  postgres:
+    image: postgres:16-alpine@sha256:f2f98726820d0342055351c6e9d36e705f5bfffb3dd53ff556325114b08afb6d
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /var/run/postgresql:rw,noexec,nosuid,size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+    pids_limit: 200
+    mem_limit: 1g
+    cpus: 1.5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   ml-service:
     environment:
+      PETROTWIN_DATA_MODE: field
       PETROTWIN_AUTH_MODE: required
-      PETROTWIN_JWT_SECRET: ${PETROTWIN_JWT_SECRET:?Set PETROTWIN_JWT_SECRET to a random secret of at least 32 bytes}
+      PETROTWIN_JWT_SECRET: ${PETROTWIN_JWT_SECRET:?Set a unique PETROTWIN_JWT_SECRET of at least 32 bytes}
       PETROTWIN_TOKEN_TTL_MINUTES: ${PETROTWIN_TOKEN_TTL_MINUTES:-15}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS to the exact trusted frontend origin(s)}
+    ports: !reset []
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=128m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 256
+    mem_limit: 2g
+    cpus: 2.0
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  frontend:
+    user: "101:101"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,uid=101,gid=101
+      - /var/cache/nginx:rw,noexec,nosuid,size=32m,uid=101,gid=101
+      - /var/run:rw,noexec,nosuid,size=8m,uid=101,gid=101
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 384m
+    cpus: 0.75
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

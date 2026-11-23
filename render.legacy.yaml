@@ -1,3 +1,4 @@
+# DEPRECATED ARCHIVE — DO NOT DEPLOY. This topology predates required auth and hardened Compose.
 services:
   - type: web
     name: petrotwin-ml-service

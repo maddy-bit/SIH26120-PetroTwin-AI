@@ -29,12 +29,12 @@ This document describes the implementation currently present in the repository a
 ### Agent and security
 - The LLM agent needs an externally configured OpenAI-compatible endpoint/model and provider key. No live provider credential is configured in the current environment.
 - The MCP agent can only read the application's registered evidence; no write/action tools are exposed. This is not a full autonomous operator or official IBM AssetOpsBench benchmark integration.
-- Application authentication and RBAC are implemented, but the deployment still needs HTTPS/TLS termination, edge rate limiting, CSP, secret-manager integration, backup access controls, external security testing and recovery drills before public exposure.
-- No external OIDC/SSO integration or MFA exists. Browser bearer tokens use session storage, so frontend XSS hardening/CSP remains required.
+- Application authentication/RBAC and local Nginx CSP/security headers and login/API rate limits are implemented. Public HTTPS/TLS termination and HSTS, trusted ingress, managed secret storage/rotation, off-host backups/restore, monitoring and external security testing remain prerequisites before public exposure.
+- No external OIDC/SSO integration or MFA exists. Browser bearer tokens use session storage; CSP reduces exposure but does not replace secure frontend code review and XSS testing.
 - User-supplied role/configuration metadata does not by itself constitute independent asset-owner authorization.
 
 ### Deployment and operations
-- The production Compose profile and runtime are being verified separately; passing Compose config validation is not equivalent to a production deployment.
+- The authenticated hardened Compose profile has been built and smoke-tested locally; this is not a public production release.
 - No cloud deployment, DNS/TLS, centralized monitoring, alerting, backup schedule or disaster-recovery RPO/RTO has been established.
 - Spring Boot remains legacy/dormant source and is not in the canonical runtime.
 - Model registry candidate lifecycle does not yet include automated drift monitoring, scheduled retraining or statistical rollback policy.
@@ -42,8 +42,6 @@ This document describes the implementation currently present in the repository a
 
 ## Verification record
 
-The repository has a live local Docker/PostgreSQL development stack available. Previous baseline checks on this device showed the API health check reporting database READY, 63 Python tests passing, six browser E2E journeys passing, and the frontend production build passing. This development-stack evidence does not establish a secure production deployment.
-
-After the current integration work, rerun the complete Python suite, browser E2E, frontend production build, production Compose build/start, PostgreSQL migration check, auth/login/RBAC workflow and agent/model API tests. Record exact counts and exit codes in the release report. Do not report a current green status until these checks complete.
+The local authenticated hardening run completed on 2026-11-23: 80 Python tests and 7 browser E2E tests passed, the TypeScript/Vite production build passed, and the latest hardened Compose stack reached healthy status. Nginx headers/rate limits, login/RBAC/revocation, private API binding, non-root/read-only containers, migration 9 and PostgreSQL restart persistence were checked. Lint had 23 warnings and zero errors. This evidence does not establish a secure public production deployment.
 
 No real field dataset or external field-validation report is present. Therefore field validation remains **NOT ESTABLISHED**.
